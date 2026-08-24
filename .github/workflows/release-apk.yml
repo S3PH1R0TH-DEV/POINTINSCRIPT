@@ -1,7 +1,8 @@
-name: Build Release APK
+name: Build & Release APK
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -54,16 +55,14 @@ jobs:
         run: npx cap sync android
 
       - name: Decode keystore
-        id: keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/mobile/android/app/release.keystore
-          echo "keystore_path=app/mobile/android/app/release.keystore" >> $GITHUB_OUTPUT
 
       - name: Create signing config
         working-directory: app/mobile/android
         run: |
           cat > app/signing.properties <<EOF
-          storeFile=release.keystore
+          storeFile=../app/release.keystore
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
@@ -73,18 +72,42 @@ jobs:
         working-directory: app/mobile/android
         run: ./gradlew assembleRelease --no-daemon
 
-      - name: Upload Release APK
+      - name: List APK outputs
+        working-directory: app/mobile/android
+        run: find . -name "*.apk" -type f 2>/dev/null | head -20
+
+      - name: Upload Release APK (artifact)
         uses: actions/upload-artifact@v4
         with:
           name: pointinscript-release-apk
-          path: app/mobile/android/app/build/outputs/apk/release/app-release.apk
+          path: app/mobile/android/app/build/outputs/apk/release/*.apk
           retention-days: 90
 
-      - name: Create GitHub Release
+      - name: Create/Update GitHub Release (tags v*)
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/mobile/android/app/build/outputs/apk/release/app-release.apk
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: app/mobile/android/app/build/outputs/apk/release/*.apk
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create/Update "Latest" Release (push main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Build
+          body: |
+            **Build automatique depuis `main`** — ${{ github.sha }}
+            
+            APK release signé, prêt à installer.
+            
+            _Mis à jour à chaque push sur `main`._
+          files: app/mobile/android/app/build/outputs/apk/release/*.apk
+          make_latest: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
