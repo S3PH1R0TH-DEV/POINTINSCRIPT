@@ -39,7 +39,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-v1-${{ hashFiles('app/mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-v2-${{ hashFiles('app/mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-v1-
 
       - name: Install Capacitor deps
@@ -62,7 +62,11 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
-          keytool -list -v -keystore app/mobile/android/app/release.keystore -storepass "$STORE_PASS" -alias "$KEY_ALIAS" -keypass "$KEY_PASS"
+          echo "=== File info ==="
+          file app/mobile/android/app/release.keystore
+          ls -la app/mobile/android/app/release.keystore
+          echo "=== Keytool verify (JKS) ==="
+          keytool -list -v -storetype JKS -keystore app/mobile/android/app/release.keystore -storepass "$STORE_PASS" -alias "$KEY_ALIAS" -keypass "$KEY_PASS"
 
       - name: Create signing config
         working-directory: app/mobile/android
