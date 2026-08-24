@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">POINTINSCRIPT</string>
+    <string name="title_activity_main">POINTINSCRIPT</string>
+    <string name="package_name">ci.men.delc.pointinscript</string>
+    <string name="custom_url_scheme">ci.men.delc.pointinscript</string>
+</resources>

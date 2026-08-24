@@ -44,11 +44,7 @@ jobs:
         working-directory: app/mobile
         run: npm ci
 
-      - name: Add Android platform
-        working-directory: app/mobile
-        run: npx cap add android
-
-      - name: Sync Capacitor
+      - name: Sync Capacitor (android/ est committé)
         working-directory: app/mobile
         run: npx cap sync android
 

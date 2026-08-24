@@ -4,7 +4,6 @@ node_modules/
 # Build outputs
 build/
 dist/
-android/
 *.apk
 *.aab
 
