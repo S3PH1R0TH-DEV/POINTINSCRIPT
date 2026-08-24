@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+android/
+*.apk
+*.aab
+
+# Keystore (JAMAIS commiter)
+*.keystore
+*.jks
+
+# Logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+.sudo_as_admin_successful
+
+# Firebase
+.firebase/
+.firebaserc.local
+
+# Capacitor
+.capacitor/
+
+# Temp folders
+.freebuff/
+uploads/
+POINTISNCRIPT/
+
+# Local config
+.env
+*.local

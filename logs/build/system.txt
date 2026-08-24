@@ -1,8 +1,0 @@
-2026-08-24T13:29:01.4930000Z Evaluating build.if
-2026-08-24T13:29:01.4930000Z Evaluating: success()
-2026-08-24T13:29:01.4930000Z Result: true
-2026-08-24T13:29:01.4940000Z Requested labels: ubuntu-latest
-2026-08-24T13:29:01.4940000Z Job defined at: S3PH1R0TH-DEV/POINTINSCRIPT/.github/workflows/build-apk.yml@refs/heads/main
-2026-08-24T13:29:01.4940000Z Waiting for a runner to pick up this job...
-2026-08-24T13:29:01.7260000Z Job is waiting for a hosted runner to come online.
-2026-08-24T13:29:01.7270000Z Job is about to start running on the hosted runner: GitHub Actions 1000000064
