@@ -70,9 +70,13 @@ jobs:
         working-directory: app/mobile/android
         run: ./gradlew assembleRelease --no-daemon
 
+      - name: List APK outputs
+        working-directory: app/mobile/android
+        run: find . -name "*.apk" -type f 2>/dev/null | head -20
+
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
           name: pointinscript-release-apk
-          path: app/mobile/android/app/build/outputs/apk/release/pointinscript.apk
+          path: app/mobile/android/app/build/outputs/apk/release/*.apk
           retention-days: 30
