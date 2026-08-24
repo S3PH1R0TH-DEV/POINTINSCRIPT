@@ -57,10 +57,9 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/mobile/android/app/release.keystore
 
       - name: Create signing config
-        working-directory: app/mobile/android
         run: |
-          cat > app/signing.properties <<EOF
-          storeFile=release.keystore
+          cat > app/mobile/android/signing.properties <<EOF
+          storeFile=app/release.keystore
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
