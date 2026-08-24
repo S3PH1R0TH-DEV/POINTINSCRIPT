@@ -1,0 +1,21 @@
+{
+  "name": "pointinscript-frontend",
+  "version": "1.0.0",
+  "description": "POINTINSCRIPT - Application web PWA de remontée des inscriptions préscolaire & CP1",
+  "scripts": {
+    "dev": "npx serve . -l 5000",
+    "start": "npx serve . -l 5000",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "pwa",
+    "firebase",
+    "education",
+    "cote-ivoire"
+  ],
+  "author": "DELC - Ministère de l'Éducation Nationale et de l'Alphabétisation",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

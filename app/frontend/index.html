@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#007a4b">
+  <meta name="description" content="POINTINSCRIPT - Remontée des inscriptions préscolaire & CP1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="POINTINSCRIPT">
+  <title>POINTINSCRIPT — Préscolaire & CP1</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ============ ÉCRAN DE CONNEXION ============ -->
+  <div id="login-view" class="screen">
+    <div class="login-card">
+      <div class="flag-bar"></div>
+      <div class="logo-row">
+        <img src="icons/logo.png" alt="Logo POINTINSCRIPT" class="logo">
+      </div>
+      <h1>POINTINSCRIPT</h1>
+      <p class="subtitle">Point des Inscriptions — Préscolaire & CP1 — <span id="login-year">2026-2027</span></p>
+      <p class="subtitle-min">Ministère de l'Éducation Nationale et de l'Alphabétisation — DELC</p>
+      <form id="login-form">
+        <label>Identifiant (nom d'utilisateur)</label>
+        <input type="text" id="login-username" autocomplete="username" autocapitalize="none" required>
+        <label>Mot de passe</label>
+        <input type="password" id="login-password" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary btn-block" id="login-btn">Se connecter</button>
+        <p class="error" id="login-error"></p>
+      </form>
+      <p class="hint">Connexion internet requise pour la première connexion.<br>Ensuite, la saisie fonctionne hors-ligne.</p>
+      <footer class="app-footer">Propulsé par S3ph1r0th-DEK Builds &copy; 2026</footer>
+    </div>
+  </div>
+
+  <!-- ============ APPLICATION ============ -->
+  <div id="app-view" class="screen hidden">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="app-name">POINTINSCRIPT</span>
+        <span class="sync-badge" id="sync-badge" title="État de synchronisation">…</span>
+      </div>
+      <div class="topbar-right">
+        <span id="new-badge" class="new-badge hidden"></span>
+        <span id="user-label"></span>
+        <button class="btn btn-ghost btn-sm" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- ============ VUE DIRECTEUR ============ -->
+    <main id="director-view" class="container hidden">
+      <div class="school-banner">
+        <h2 id="school-name"></h2>
+        <p id="school-details"></p>
+      </div>
+
+      <div class="card">
+        <label>Date du point (nouvelles inscriptions du jour)</label>
+        <select id="date-select"></select>
+        <p class="week-range" id="date-range"></p>
+      </div>
+
+      <form id="report-form">
+        <!-- Préscolaire -->
+        <section id="pre-section" class="hidden">
+          <h3 class="section-title pre">🧒 Point des inscriptions au Préscolaire</h3>
+          <div class="grid-form">
+            <div class="field"><label>Nombre d'enfants</label><input type="number" min="0" id="pre_enfants" class="num"></div>
+            <div class="field"><label>Inscrits — Total</label><input type="number" min="0" id="pre_inscrits_total" class="num"></div>
+            <div class="field"><label>Inscrits — Dont filles</label><input type="number" min="0" id="pre_inscrits_filles" class="num"></div>
+            <div class="field"><label>Handicap — Avec</label><input type="number" min="0" id="pre_handicap_avec" class="num"></div>
+            <div class="field"><label>Handicap — Sans</label><input type="number" min="0" id="pre_handicap_sans" class="num"></div>
+            <div class="field"><label>Non-inscrits — Total</label><input type="number" min="0" id="pre_non_inscrits_total" class="num"></div>
+            <div class="field"><label>Non-inscrits — Dont filles</label><input type="number" min="0" id="pre_non_inscrits_filles" class="num"></div>
+            <div class="field"><label>% Non-inscrits</label><input type="text" id="pre_non_inscrits_pct" readonly class="num muted"></div>
+          </div>
+          <div class="field full"><label>Motifs de non-inscription (préscolaire)</label><textarea id="pre_motifs" rows="2"></textarea></div>
+        </section>
+
+        <!-- Primaire -->
+        <section id="prim-section" class="hidden">
+          <h3 class="section-title prim">📚 Point des inscriptions au Primaire (CP1)</h3>
+          <div class="grid-form">
+            <div class="field"><label>Nombre d'élèves</label><input type="number" min="0" id="prim_eleves" class="num"></div>
+            <div class="field"><label>Inscrits — Total</label><input type="number" min="0" id="prim_inscrits_total" class="num"></div>
+            <div class="field"><label>Inscrits — Dont filles</label><input type="number" min="0" id="prim_inscrits_filles" class="num"></div>
+            <div class="field"><label>Handicap — Avec</label><input type="number" min="0" id="prim_handicap_avec" class="num"></div>
+            <div class="field"><label>Handicap — Sans</label><input type="number" min="0" id="prim_handicap_sans" class="num"></div>
+            <div class="field"><label>Non-inscrits — Total</label><input type="number" min="0" id="prim_non_inscrits_total" class="num"></div>
+            <div class="field"><label>Non-inscrits — Dont filles</label><input type="number" min="0" id="prim_non_inscrits_filles" class="num"></div>
+            <div class="field"><label>% Non-inscrits</label><input type="text" id="prim_non_inscrits_pct" readonly class="num muted"></div>
+          </div>
+          <div class="field full"><label>Motifs de non-inscription (primaire)</label><textarea id="prim_motifs" rows="2"></textarea></div>
+        </section>
+
+        <section>
+          <h3 class="section-title">📝 Observations & difficultés</h3>
+          <div class="field full"><label>Observations</label><textarea id="observations" rows="2"></textarea></div>
+          <div class="field full"><label>Difficultés rencontrées dans la conduite de l'opération</label><textarea id="difficultes" rows="2"></textarea></div>
+          <div class="field full"><label>Dispositions prises pour y remédier</label><textarea id="dispositions" rows="2"></textarea></div>
+        </section>
+
+        <div class="actions">
+          <button type="button" class="btn btn-outline" id="save-draft-btn">💾 Enregistrer (brouillon)</button>
+          <button type="button" class="btn btn-primary" id="submit-btn">☁️ Envoyer au serveur</button>
+        </div>
+        <p class="status-line" id="report-status"></p>
+      </form>
+    </main>
+
+    <!-- ============ VUE ADMIN ============ -->
+    <main id="admin-view" class="container hidden">
+      <nav class="tabs" id="admin-tabs">
+        <button class="tab active" data-tab="dashboard">📊 Tableau de bord</button>
+        <button class="tab" data-tab="ecoles">🏫 Écoles</button>
+        <button class="tab" data-tab="secteurs">🗂️ Secteurs pédagogiques</button>
+        <button class="tab" data-tab="logins">🔑 Logins</button>
+        <button class="tab" data-tab="import">📥 Import</button>
+      </nav>
+
+      <!-- Dashboard -->
+      <section class="tab-panel active" id="tab-dashboard">
+        <div class="filters">
+          <label>Semaine</label>
+          <select id="cons-week"><option value="">Toutes les semaines</option></select>
+          <label>Secteur</label>
+          <select id="cons-secteur"><option value="">Tous</option></select>
+          <button class="btn btn-sm btn-outline" id="refresh-dash">Actualiser</button>
+          <button class="btn btn-sm btn-primary" id="export-excel-btn">📊 Exporter Excel (canevas)</button>
+          <button class="btn btn-sm btn-outline" id="export-btn">⬇️ CSV</button>
+        </div>
+        <div class="stat-cards" id="stat-cards"></div>
+        <p class="last-sync" id="last-sync"></p>
+        <div class="charts-row">
+          <div class="card chart-card">
+            <h4>🧒 Répartition — Préscolaire</h4>
+            <div id="donut-pre" class="donut-container"></div>
+          </div>
+          <div class="card chart-card">
+            <h4>📚 Répartition — Primaire</h4>
+            <div id="donut-prim" class="donut-container"></div>
+          </div>
+        </div>
+        <div class="card chart-card">
+          <h4>📈 Évolution quotidienne des inscriptions</h4>
+          <div id="bar-chart" class="bar-container"></div>
+        </div>
+        <div class="card">
+          <h4>Détail par école</h4>
+          <div class="table-wrap"><table id="cons-table"></table></div>
+        </div>
+      </section>
+
+      <!-- Écoles -->
+      <section class="tab-panel" id="tab-ecoles">
+        <div class="toolbar">
+          <input type="search" id="ecole-search" placeholder="Rechercher (nom, code, directeur)…">
+          <button class="btn btn-primary btn-sm" id="add-ecole-btn">+ Ajouter une école</button>
+        </div>
+        <div class="table-wrap"><table id="ecoles-table"></table></div>
+      </section>
+
+      <!-- Secteurs pédagogiques -->
+      <section class="tab-panel" id="tab-secteurs">
+        <div class="card">
+          <h4>Secteurs pédagogiques</h4>
+          <form id="secteur-form" class="inline-form">
+            <input type="text" id="secteur-nom" placeholder="Nom du secteur" required>
+            <input type="text" id="secteur-code" placeholder="Code (optionnel)">
+            <button class="btn btn-primary btn-sm">Ajouter</button>
+          </form>
+          <ul class="list" id="secteur-list"></ul>
+        </div>
+      </section>
+
+      <!-- Logins -->
+      <section class="tab-panel" id="tab-logins">
+        <div class="toolbar">
+          <button class="btn btn-primary" id="gen-all-logins">🔑 Générer les logins manquants</button>
+          <button class="btn btn-outline" id="export-logins-btn">⬇️ Exporter la liste (CSV)</button>
+        </div>
+        <p class="hint" id="logins-summary"></p>
+        <div class="table-wrap"><table id="logins-table"></table></div>
+      </section>
+
+      <!-- Import -->
+      <section class="tab-panel" id="tab-import">
+        <div class="card">
+          <h4>🌱 Initialiser les données de départ (IEPP Grabo)</h4>
+          <p class="hint">Crée en une fois les <b>5 secteurs pédagogiques</b> et les <b>30 écoles</b>
+          pré-remplies (types auto-affectés). À n'utiliser qu'au tout premier démarrage.
+          Ensuite, ajoutez/modifiez vos écoles normalement.</p>
+          <button class="btn btn-primary" id="seed-btn">Initialiser secteurs + écoles</button>
+          <p class="status-line" id="seed-status"></p>
+        </div>
+        <div class="card">
+          <h4>Importer des écoles en masse (JSON ou CSV)</h4>
+          <p class="hint">Collez un tableau <b>JSON</b> ou un <b>CSV</b> (séparateur <code>;</code>). Champs reconnus : <code>code</code>, <code>nom</code>, <code>secteur</code> (nom), <code>type</code> (Primaire / Primaire + Grande Section / Préscolaire), <code>directeur_nom</code>, <code>directeur_telephone</code>, <code>directeur_email</code>.</p>
+          <textarea id="import-json" rows="8" placeholder='code;nom;secteur;type;directeur_nom
+EPP001;EPP Koumassi;Secteur pédagogique 1;Primaire;M. Koné
+EPM002;EPM Adjamé;Secteur pédagogique 2;Primaire + Grande Section;Mme Aya'></textarea>
+          <button class="btn btn-primary" id="import-btn">Importer</button>
+          <p class="status-line" id="import-status"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============ MODALE ÉCOLE ============ -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <h3 id="modal-title">École</h3>
+      <form id="ecole-form">
+        <input type="hidden" id="ecole-id">
+        <div class="grid-form">
+          <div class="field"><label>Code</label><input type="text" id="ecole-code"></div>
+          <div class="field"><label>Nom de l'école *</label><input type="text" id="ecole-nom" required></div>
+          <div class="field"><label>Type d'école *</label>
+            <select id="ecole-type">
+              <option value="primaire">Primaire (CP1-CM2)</option>
+              <option value="primaire_prescolaire">Primaire + Grande Section</option>
+              <option value="prescolaire">Préscolaire (PS-MS-GS)</option>
+            </select>
+          </div>
+          <div class="field"><label>Secteur pédagogique</label><select id="ecole-secteur"></select></div>
+          <div class="field"><label>Nom du directeur</label><input type="text" id="ecole-directeur"></div>
+          <div class="field"><label>Téléphone du directeur</label><input type="text" id="ecole-tel"></div>
+          <div class="field"><label>Email du directeur</label><input type="email" id="ecole-email"></div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-outline" id="modal-cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <footer class="app-footer">Propulsé par S3ph1r0th-DEK Builds &copy; 2026</footer>
+
+  <!-- Firebase SDK (embarqué pour le hors-ligne) -->
+  <script src="js/vendor/firebase-app-compat.js"></script>
+  <script src="js/vendor/firebase-auth-compat.js"></script>
+  <script src="js/vendor/firebase-firestore-compat.js"></script>
+  <!-- Générateur Excel (embarqué) -->
+  <script src="js/vendor/xlsx.full.min.js"></script>
+  <!-- Application -->
+  <script src="js/config.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/seed.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/excel.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

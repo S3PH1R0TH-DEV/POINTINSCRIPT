@@ -1,0 +1,13 @@
+﻿2026-08-23T17:03:24.8350479Z ##[group]Run npx cap sync android
+2026-08-23T17:03:24.8350833Z [36;1mnpx cap sync android[0m
+2026-08-23T17:03:24.8396773Z shell: /usr/bin/bash -e {0}
+2026-08-23T17:03:24.8397051Z env:
+2026-08-23T17:03:24.8397376Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-23T17:03:24.8397877Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-23T17:03:24.8398282Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-08-23T17:03:24.8398601Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-08-23T17:03:24.8399138Z ##[endgroup]
+2026-08-23T17:03:25.2698404Z [warn] The bundledWebRuntime configuration option has been deprecated. Can be safely deleted.
+2026-08-23T17:03:25.3834871Z [error] android platform has not been added yet.
+2026-08-23T17:03:25.3836445Z         See the docs for adding the android platform: https://capacitorjs.com/docs/android#adding-the-android-platform
+2026-08-23T17:03:25.4038440Z ##[error]Process completed with exit code 1.

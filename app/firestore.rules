@@ -1,0 +1,59 @@
+rules_version = '2';
+// ============================================================
+//  RÈGLES DE SÉCURITÉ POINTINSCRIPT (Firestore)
+//  ⚠️ Remplacez ADMIN_EMAILS par le(s) email(s) du compte admin.
+//  ⚠️ Le compte admin doit être créé dans Firebase → Authentication.
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email in [
+          'admin@pointinscript.app'   // ← votre email admin (même valeur que config.js)
+        ];
+    }
+
+    // École du directeur connecté (via l'index userSchools)
+    function mySchoolId() {
+      return exists(/databases/$(database)/documents/userSchools/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/userSchools/$(request.auth.uid)).data.schoolId
+        : null;
+    }
+
+    // ---- Référentiels (lisibles par tous les connectés, modifiables par l'admin) ----
+    match /secteurs/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /ecoles/{id} {
+      // L'admin lit toutes les écoles ; un directeur ne lit QUE la sienne
+      allow get: if isSignedIn() && (isAdmin() || id == mySchoolId());
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /userSchools/{id} {
+      allow read: if isAdmin() || request.auth.uid == id;
+      allow write: if isAdmin();
+    }
+
+    // ---- Rapports quotidiens ----
+    match /reports/{id} {
+      // L'admin lit tout ; le directeur ne lit que les rapports de SON école
+      allow read: if isAdmin() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+
+      // Création : le directeur crée un rapport pour SON école uniquement
+      allow create: if isSignedIn() && request.resource.data.schoolId == mySchoolId();
+
+      // Mise à jour : admin, ou le directeur sur son propre rapport
+      allow update: if isAdmin() || (isSignedIn() && resource.data.schoolId == mySchoolId());
+
+      // Suppression : admin uniquement
+      allow delete: if isAdmin();
+    }
+  }
+}

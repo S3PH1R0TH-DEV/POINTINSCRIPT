@@ -1,0 +1,21 @@
+{
+  "name": "pointinscript-mobile",
+  "version": "1.0.0",
+  "description": "POINTINSCRIPT - Application Android (APK) de remontée des inscriptions préscolaire & CP1",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "add:android": "npx cap add android",
+    "assets": "npx @capacitor/assets generate --android",
+    "open": "npx cap open android",
+    "build:apk": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "build:apk:release": "npx cap sync android && cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/cli": "^6.1.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}

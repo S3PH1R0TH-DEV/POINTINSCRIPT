@@ -1,0 +1,11 @@
+node_modules/
+data.sqlite
+data.sqlite-*
+android/
+.capacitor/
+dist/
+build/
+*.log
+.DS_Store
+.firebase/
+.firebaserc.local
