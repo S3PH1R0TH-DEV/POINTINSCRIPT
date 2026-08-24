@@ -41,7 +41,7 @@ android {
     }
     applicationVariants.all { variant ->
         variant.outputs.all { output ->
-            outputFileName = new File(output.outputFile.parent, "pointinscript.apk")
+            output.outputFileName = "pointinscript.apk"
         }
     }
 }
