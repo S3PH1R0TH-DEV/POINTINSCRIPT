@@ -1,12 +1,12 @@
 // ============================================================
 //  CONFIGURATION POINTINSCRIPT — Firebase
-//  ⚠️ REMPLIR : Copiez vos clés depuis Firebase Console > Project Settings > General > Your apps > Config
+//  ✅ Configurée avec le projet "pointinscript"
 // ============================================================
 window.APP_CONFIG = {
 
   // ---- Configuration Firebase ----
   firebase: {
-    apiKey: "VOTRE_API_KEY_ICI",          // ← à remplacer
+    apiKey: "AIzaSyDy_hXAG0SxOXtoBF6XDIiEpEm6bocLYR4",
     authDomain: "pointinscript.firebaseapp.com",
     projectId: "pointinscript",
     storageBucket: "pointinscript.firebasestorage.app",
