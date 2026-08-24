@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Release APK
 
 on:
   push:
@@ -52,13 +52,27 @@ jobs:
         working-directory: app/mobile
         run: npx cap sync android
 
-      - name: Build Debug APK
-        working-directory: app/mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/mobile/android/app/release.keystore
 
-      - name: Upload APK
+      - name: Create signing config
+        working-directory: app/mobile/android
+        run: |
+          cat > app/signing.properties <<EOF
+          storeFile=release.keystore
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Build Release APK
+        working-directory: app/mobile/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: pointinscript-debug-apk
-          path: app/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: pointinscript-release-apk
+          path: app/mobile/android/app/build/outputs/apk/release/pointinscript.apk
           retention-days: 30
