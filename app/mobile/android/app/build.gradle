@@ -40,9 +40,9 @@ android {
         }
     }
     applicationVariants.all { variant ->
-        def output = variant.outputs[0]
-        def fileName = "pointinscript.apk"
-        outputFileName = new File(output.outputFile.parent, fileName)
+        variant.outputs.all { output ->
+            outputFileName = new File(output.outputFile.parent, "pointinscript.apk")
+        }
     }
 }
 
