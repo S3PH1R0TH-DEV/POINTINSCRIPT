@@ -52,7 +52,11 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/mobile/android/app/release.keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | tr -d '\n\r ' | base64 -d > app/mobile/android/app/release.keystore
+
+      - name: Verify keystore
+        run: |
+          keytool -list -v -keystore app/mobile/android/app/release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -alias "${{ secrets.KEY_ALIAS }}" -keypass "${{ secrets.KEY_PASSWORD }}"
 
       - name: Create signing config
         working-directory: app/mobile/android
