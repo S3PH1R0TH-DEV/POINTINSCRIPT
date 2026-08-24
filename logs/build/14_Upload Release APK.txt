@@ -1,0 +1,30 @@
+﻿2026-08-24T13:30:41.9115773Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-08-24T13:30:41.9117995Z ##[group]Run actions/upload-artifact@v4
+2026-08-24T13:30:41.9118485Z with:
+2026-08-24T13:30:41.9118953Z   name: ***-release-apk
+2026-08-24T13:30:41.9119520Z   path: app/mobile/android/app/build/outputs/apk/release/*.apk
+2026-08-24T13:30:41.9120134Z   retention-days: 30
+2026-08-24T13:30:41.9120528Z   if-no-files-found: warn
+2026-08-24T13:30:41.9121148Z   compression-level: 6
+2026-08-24T13:30:41.9121543Z   overwrite: false
+2026-08-24T13:30:41.9121937Z   include-hidden-files: false
+2026-08-24T13:30:41.9122360Z env:
+2026-08-24T13:30:41.9122877Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:30:41.9123741Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:30:41.9124486Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-08-24T13:30:41.9125014Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-08-24T13:30:41.9125511Z ##[endgroup]
+2026-08-24T13:30:42.0851367Z (node:2948) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-08-24T13:30:42.0852308Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-08-24T13:30:42.0918645Z With the provided path, there will be 1 file uploaded
+2026-08-24T13:30:42.0923005Z Artifact name is valid!
+2026-08-24T13:30:42.0926865Z Root directory input is valid!
+2026-08-24T13:30:42.4275458Z Beginning upload of artifact content to blob storage
+2026-08-24T13:30:42.5658313Z (node:2948) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-08-24T13:30:43.2049864Z Uploaded bytes 3473663
+2026-08-24T13:30:43.2712140Z Finished uploading artifact content to blob storage!
+2026-08-24T13:30:43.2713834Z SHA256 digest of uploaded artifact zip is 395d7343bd8fa03038eae915d1f136bd877fab3edb6f46a36b55f5759a65c9f2
+2026-08-24T13:30:43.2715026Z Finalizing artifact upload
+2026-08-24T13:30:43.5100231Z Artifact ***-release-apk.zip successfully finalized. Artifact ID 9522152788
+2026-08-24T13:30:43.5102972Z Artifact ***-release-apk has been successfully uploaded! Final size is 3473663 bytes. Artifact ID is 9522152788
+2026-08-24T13:30:43.5118985Z Artifact download URL: https://github.com/S3PH1R0TH-DEV/POINTINSCRIPT/actions/runs/32732943240/artifacts/9522152788

@@ -1,0 +1,21 @@
+﻿2026-08-24T13:29:43.9978531Z ##[group]Run npx cap add android
+2026-08-24T13:29:43.9978890Z [36;1mnpx cap add android[0m
+2026-08-24T13:29:44.0018727Z shell: /usr/bin/bash -e {0}
+2026-08-24T13:29:44.0019007Z env:
+2026-08-24T13:29:44.0019339Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:29:44.0019886Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:29:44.0020324Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-08-24T13:29:44.0020946Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-08-24T13:29:44.0021332Z ##[endgroup]
+2026-08-24T13:29:44.4110355Z [warn] The bundledWebRuntime configuration option has been deprecated. Can be safely deleted.
+2026-08-24T13:29:44.5303931Z ✔ Adding native android project in android in 35.93ms
+2026-08-24T13:29:44.5304451Z ✔ add in 36.24ms
+2026-08-24T13:29:44.5519887Z ✔ Copying web assets from frontend to android/app/src/main/assets/public in 11.27ms
+2026-08-24T13:29:44.5524484Z ✔ Creating capacitor.config.json in android/app/src/main/assets in 347.80μs
+2026-08-24T13:29:44.5550288Z ✔ copy android in 16.42ms
+2026-08-24T13:29:44.5578129Z ✔ Updating Android plugins in 653.54μs
+2026-08-24T13:29:44.5668496Z ✔ update android in 10.77ms
+2026-08-24T13:29:44.5679928Z ✔ Syncing Gradle in 139.60μs
+2026-08-24T13:29:44.5684145Z [success] android platform added!
+2026-08-24T13:29:44.5685091Z Follow the Developer Workflow guide to get building:
+2026-08-24T13:29:44.5685812Z https://capacitorjs.com/docs/basics/workflow

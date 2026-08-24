@@ -1,0 +1,14 @@
+﻿2026-08-24T13:29:45.1928066Z ##[group]Run cat > app/mobile/android/signing.properties <<EOF
+2026-08-24T13:29:45.1928555Z [36;1mcat > app/mobile/android/signing.properties <<EOF[0m
+2026-08-24T13:29:45.1928919Z [36;1mstoreFile=app/release.keystore[0m
+2026-08-24T13:29:45.1929291Z [36;1mstorePassword=***[0m
+2026-08-24T13:29:45.1929583Z [36;1mkeyAlias=***[0m
+2026-08-24T13:29:45.1929831Z [36;1mkeyPassword=[0m
+2026-08-24T13:29:45.1930058Z [36;1mEOF[0m
+2026-08-24T13:29:45.1964393Z shell: /usr/bin/bash -e {0}
+2026-08-24T13:29:45.1964671Z env:
+2026-08-24T13:29:45.1965004Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:29:45.1965525Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-8/x64
+2026-08-24T13:29:45.1966130Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-08-24T13:29:45.1966454Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-08-24T13:29:45.1966747Z ##[endgroup]
