@@ -6,6 +6,7 @@ const FB = (() => {
   const CFG = window.APP_CONFIG;
   const DOMAIN = CFG.usernameDomain;
   const ADMIN_EMAIL = CFG.adminEmail;
+  const INSPECTEUR_EMAIL = CFG.inspecteurEmail;
   const YEAR = CFG.year;
 
   firebase.initializeApp(CFG.firebase);
@@ -30,6 +31,37 @@ const FB = (() => {
 
   function isAdminUser(user) {
     return !!user && (user.email || '').toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  }
+
+  function isInspecteurUser(user) {
+    return !!user && (user.email || '').toLowerCase() === INSPECTEUR_EMAIL.toLowerCase();
+  }
+
+  function isInspecteur() {
+    const u = auth.currentUser;
+    return isInspecteurUser(u);
+  }
+
+  function isAdmin() {
+    const u = auth.currentUser;
+    return isAdminUser(u);
+  }
+
+  function isDirector() {
+    const u = auth.currentUser;
+    return !!u && !isAdminUser(u) && !isInspecteurUser(u);
+  }
+
+  // Se connecte (admin OU inspecteur OU directeur selon l'identifiant fourni)
+  async function login(username, password) {
+    const u = (username || '').trim().toLowerCase();
+    let email;
+    if (u === ADMIN_EMAIL.toLowerCase() || u === 'admin') email = ADMIN_EMAIL;
+    else if (u === INSPECTEUR_EMAIL.toLowerCase() || u === 'ieppgrabo') email = INSPECTEUR_EMAIL;
+    else if (u.includes('@')) email = u;
+    else email = emailForUsername(username);
+    const cred = await auth.signInWithEmailAndPassword(email, password);
+    return cred.user;
   }
 
   // Se connecte (admin OU directeur selon l'identifiant fourni)
@@ -247,8 +279,8 @@ const FB = (() => {
   }
 
   return {
-    auth, db, YEAR, ADMIN_EMAIL, DOMAIN,
-    currentUser, isAdminUser, login, logout,
+    auth, db, YEAR, ADMIN_EMAIL, INSPECTEUR_EMAIL, DOMAIN,
+    currentUser, isAdminUser, isInspecteurUser, isAdmin, isInspecteur, isDirector, login, logout,
     createDirectorAccount,
     getSecteurs, addSecteur, updateSecteur, deleteSecteur,
     getEcoles, addEcole, updateEcole, deleteEcole,

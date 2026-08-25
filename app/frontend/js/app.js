@@ -125,22 +125,35 @@
   async function enterAppFor(user) {
     showApp();
     const isAdmin = FB.isAdminUser(user);
+    const isInspecteur = FB.isInspecteurUser(user);
     if (isAdmin) {
       session = { user, role: 'admin', school: null };
       $('user-label').textContent = '🛡️ Admin';
-      $('director-view').classList.add('hidden');
+      hideAllViews();
       $('admin-view').classList.remove('hidden');
       await initAdmin();
+    } else if (FB.isInspecteurUser(user)) {
+      session = { user, role: 'inspecteur', school: null };
+      $('user-label').textContent = '👁️ Inspecteur IEPP';
+      hideAllViews();
+      $('inspecteur-view').classList.remove('hidden');
+      await initInspecteur();
     } else {
       const school = await FB.getMySchool(user.uid);
       if (!school) { toast('École introuvable pour ce compte', 'err'); return logout(); }
       session = { user, role: 'directeur', school };
       $('user-label').textContent = '🏫 ' + (school.directeur_nom || school.nom);
-      $('admin-view').classList.add('hidden');
+      hideAllViews();
       $('director-view').classList.remove('hidden');
       await initDirector();
     }
     updateOnlineStatus();
+  }
+
+  function hideAllViews() {
+    $('director-view').classList.add('hidden');
+    $('admin-view').classList.add('hidden');
+    $('inspecteur-view').classList.add('hidden');
   }
 
   // ============================================================
@@ -281,10 +294,54 @@
         : '📶 Hors ligne — point enregistré localement, envoi automatique dès le retour du réseau.';
       $('report-status').className = 'status-line ok';
       toast(navigator.onLine ? 'Envoyé avec succès' : 'Enregistré (hors-ligne)', 'ok');
+
+      // 🎉 Encouragement : série de jours consécutifs
+      const streak = updateStreak(d);
+      if (streak > 1) {
+        const msg = streakMessages[Math.min(streak, streakMessages.length - 1)];
+        setTimeout(() => toast(msg, 'ok'), 800);
+      }
     } catch (err) {
       $('report-status').textContent = '⚠️ Erreur : ' + (err.message || err);
       $('report-status').className = 'status-line err';
       toast('Erreur lors de l\'envoi', 'err');
+    }
+  }
+
+  // 🎉 Encouragement : gestion de la série de jours
+  const STREAK_KEY = 'pointinscript_streak_v1';
+  const streakMessages = [
+    '🎉 Premier point envoyé ! Bon début !',
+    '🔥 2 jours de suite — vous êtes sur la bonne voie !',
+    '💪 3 jours d\'affilée — la régularité paie !',
+    '⭐ 4 jours — une vraie régularité, bravo !',
+    '🏆 5 jours consécutifs — excellence !',
+    '🚀 Semaine complète ! Vous assurez !',
+    '🌟 Au-delà d\'une semaine — un modèle de régularité !'
+  ];
+
+  function updateStreak(todayStr) {
+    try {
+      const data = JSON.parse(localStorage.getItem(STREAK_KEY) || '{}');
+      const last = data.lastDate;
+      const streak = data.streak || 0;
+      const today = new Date(todayStr + 'T00:00:00');
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yStr = yesterday.toISOString().slice(0, 10);
+
+      let newStreak = 1;
+      if (last === todayStr) {
+        newStreak = streak; // même jour, ne change rien
+      } else if (last === yStr) {
+        newStreak = streak + 1; // jour consécutif
+      } else {
+        newStreak = 1; // série cassée
+      }
+      localStorage.setItem(STREAK_KEY, JSON.stringify({ lastDate: todayStr, streak: newStreak }));
+      return newStreak;
+    } catch (_) {
+      return 1;
     }
   }
 
@@ -314,7 +371,139 @@
     setInterval(checkActivity, 60000);
   }
 
-  async function loadSecteurs() {
+  // ============================================================
+  //  VUE INSPECTEUR (lecture seule)
+  // ============================================================
+  async function initInspecteur() {
+    config = buildCalendar();
+    $('login-year').textContent = config.year;
+
+    // Semaines
+    const weekSel = $('insp-cons-week');
+    weekSel.innerHTML = '<option value="">Toute la période</option>';
+    for (const w of config.weeks) {
+      const o = document.createElement('option');
+      o.value = w.no; o.textContent = w.label + ' (' + w.from + ' → ' + w.to + ')';
+      weekSel.appendChild(o);
+    }
+
+    // Secteurs
+    const sectSel = $('insp-cons-secteur');
+    sectSel.innerHTML = '<option value="">Tous</option>';
+    try {
+      secteurs = await FB.getSecteurs();
+      for (const s of secteurs) {
+        const o = document.createElement('option');
+        o.value = s.id; o.textContent = s.nom;
+        $('insp-cons-secteur').appendChild(o);
+      }
+    } catch (e) { /* offline */ }
+
+    await renderInspecteurDashboard();
+
+    // Refresh buttons
+    $('insp-refresh-dash').addEventListener('click', () => renderInspecteurDashboard());
+    $('insp-cons-week').addEventListener('change', () => renderInspecteurDashboard());
+    $('insp-cons-secteur').addEventListener('change', () => renderInspecteurDashboard());
+
+    // Sync badge
+    updateInspecteurSyncBadge();
+    setInterval(updateInspecteurSyncBadge, 30000);
+  }
+
+  async function renderInspecteurDashboard() {
+    const week = $('insp-cons-week').value;
+    const secteur = $('insp-cons-secteur').value;
+    let weekFrom, weekTo;
+    if (week) { const w = config.weeks.find(x => x.no === Number(week)); weekFrom = w.from; weekTo = w.to; }
+    const reports = await FB.getAllReports(weekFrom, weekTo);
+    let cons = computeConsolidation(reports, week || null);
+    if (secteur) {
+      const ids = new Set(cons.rows.filter(r => r.secteurId === secteur).map(r => r.id));
+      cons = computeConsolidation(reports.filter(r => ids.has(r.schoolId)), week || null);
+    }
+    renderInspecteurStats(cons);
+    renderInspecteurCharts(cons);
+    renderInspecteurTable(cons);
+    updateInspecteurSyncBadge();
+  }
+
+  function renderInspecteurStats(cons) {
+    const c = $('insp-stat-cards');
+    c.innerHTML = '';
+    const stats = [
+      { label: 'Écoles actives', value: cons.ecoles_ayant_rapporte, color: 'accent' },
+      { label: 'Total écoles', value: cons.total_ecoles, color: '' },
+      { label: 'Taux remontée', value: cons.taux_remontee + ' %', color: 'green' },
+      { label: 'Préscolaire — Enfants', value: cons.totaux.pre_enfants, color: '' },
+      { label: 'Préscolaire — Inscrits', value: cons.totaux.pre_inscrits_total, color: 'green' },
+      { label: 'Préscolaire — Non-inscrits', value: cons.totaux.pre_non_inscrits_total, color: 'accent' },
+      { label: 'Primaire — Élèves', value: cons.totaux.prim_eleves, color: '' },
+      { label: 'Primaire — Inscrits', value: cons.totaux.prim_inscrits_total, color: 'green' },
+      { label: 'Primaire — Non-inscrits', value: cons.totaux.prim_non_inscrits_total, color: 'accent' }
+    ];
+    for (const s of stats) {
+      const div = document.createElement('div');
+      div.className = 'stat' + (s.color ? ' ' + s.color : '');
+      div.innerHTML = '<div class="v">' + s.value + '</div><div class="l">' + s.label + '</div>';
+      $('insp-stat-cards').appendChild(div);
+    }
+  }
+
+  function renderInspecteurCharts(cons) {
+    // Donuts
+    if (cons.rows.some(r => r.has_prescolaire)) {
+      drawDonut('insp-donut-pre', {
+        inscrits: cons.totaux.pre_inscrits_total,
+        filles: cons.totaux.pre_inscrits_filles,
+        nonInscrits: cons.totaux.pre_non_inscrits_total
+      }, ORANGE, ORANGE_LIGHT);
+    } else {
+      $('insp-donut-pre').innerHTML = '<p class="hint">Pas de données préscolaire</p>';
+    }
+    if (cons.rows.some(r => r.has_primaire)) {
+      drawDonut('insp-donut-prim', {
+        inscrits: cons.totaux.prim_inscrits_total,
+        filles: cons.totaux.prim_inscrits_filles,
+        nonInscrits: cons.totaux.prim_non_inscrits_total
+      }, GREEN, GREEN_LIGHT);
+    } else {
+      $('insp-donut-prim').innerHTML = '<p class="hint">Pas de données primaire</p>';
+    }
+
+    // Barres
+    drawBarChart('insp-bar-chart', cons, config);
+  }
+
+  function renderInspecteurTable(cons) {
+    const tb = $('insp-cons-table');
+    const rows = cons.rows.filter(r => r.has_prescolaire || r.has_primaire);
+    tb.innerHTML = '<tr><th>École</th><th>Secteur</th><th>Type</th><th>Préscolaire (Enf/Ins/Non)</th><th>Primaire (Elv/Ins/Non)</th><th>Taux remontée</th></tr>';
+    for (const r of rows) {
+      const tr = document.createElement('tr');
+      const pre = r.has_prescolaire ? r.pre_enfants + '/' + r.pre_inscrits_total + '/' + r.pre_non_inscrits_total : '—';
+      const prim = r.has_primaire ? r.prim_eleves + '/' + r.prim_inscrits_total + '/' + r.prim_non_inscrits_total : '—';
+      tr.innerHTML = '<td>' + esc(r.nom) + '</td>' +
+        '<td>' + esc(r.secteur_nom || '—') + '</td>' +
+        '<td>' + esc(TYPE_LABELS[r.type] || r.type) + '</td>' +
+        '<td class="num">' + esc(pre) + '</td>' +
+        '<td class="num">' + esc(prim) + '</td>' +
+        '<td class="num">' + (r.nb_jours > 0 ? (r.pre_non_inscrits_pct || r.prim_non_inscrits_pct || '0') + ' %' : '—') + '</td>';
+      tb.appendChild(tr);
+    }
+  }
+
+  function updateInspecteurSyncBadge() {
+    const b = $('insp-sync-badge');
+    b.className = 'sync-badge ' + (navigator.onLine ? 'online' : 'offline');
+    b.textContent = navigator.onLine ? '● En ligne' : '○ Hors ligne';
+  }
+
+  function updateInspecteurSyncBadge() {
+    const b = $('insp-sync-badge');
+    b.className = 'sync-badge ' + (navigator.onLine ? 'online' : 'offline');
+    b.textContent = navigator.onLine ? '● En ligne' : '○ Hors ligne';
+  }
     secteurs = await FB.getSecteurs();
     const sl = $('secteur-list');
     sl.innerHTML = '';
@@ -811,6 +1000,13 @@
     $('cons-secteur').addEventListener('change', () => renderDashboard());
     $('export-excel-btn').addEventListener('click', exportExcel);
     $('export-btn').addEventListener('click', () => exportCSV());
+    $('backup-btn').addEventListener('click', () => backupData());
+
+    // Inspecteur
+    $('insp-logout-btn').addEventListener('click', logout);
+    $('insp-refresh-dash').addEventListener('click', () => renderInspecteurDashboard());
+    $('insp-cons-week').addEventListener('change', () => renderInspecteurDashboard());
+    $('insp-cons-secteur').addEventListener('change', () => renderInspecteurDashboard());
 
     $('ecole-search').addEventListener('input', renderEcoles);
     $('add-ecole-btn').addEventListener('click', () => openEcoleModal(null));
@@ -869,6 +1065,60 @@
         r.prim_inscrits_total, r.prim_inscrits_filles, r.prim_non_inscrits_total, r.observations || '']);
     }
     downloadCSV(rows, 'pointinscript-' + config.year + '.csv');
+  }
+
+  async function backupData() {
+    try {
+      const reports = await FB.getAllReports();
+      const data = {
+        exportedAt: new Date().toISOString(),
+        year: config.year,
+        ecoles: ecoles.map(e => ({
+          id: e.id,
+          code: e.code,
+          nom: e.nom,
+          type: e.type,
+          secteurId: e.secteurId,
+          secteur_nom: e.secteur_nom,
+          directeur_nom: e.directeur_nom,
+          directeur_telephone: e.directeur_telephone,
+          directeur_email: e.directeur_email
+        })),
+        rapports: reports.map(r => ({
+          schoolId: r.schoolId,
+          date: r.date,
+          pre_enfants: r.pre_enfants,
+          pre_inscrits_total: r.pre_inscrits_total,
+          pre_inscrits_filles: r.pre_inscrits_filles,
+          pre_handicap_avec: r.pre_handicap_avec,
+          pre_handicap_sans: r.pre_handicap_sans,
+          pre_non_inscrits_total: r.pre_non_inscrits_total,
+          pre_non_inscrits_filles: r.pre_non_inscrits_filles,
+          pre_motifs: r.pre_motifs,
+          prim_eleves: r.prim_eleves,
+          prim_inscrits_total: r.prim_inscrits_total,
+          prim_inscrits_filles: r.prim_inscrits_filles,
+          prim_handicap_avec: r.prim_handicap_avec,
+          prim_handicap_sans: r.prim_handicap_sans,
+          prim_non_inscrits_total: r.prim_non_inscrits_total,
+          prim_non_inscrits_filles: r.prim_non_inscrits_filles,
+          prim_motifs: r.prim_motifs,
+          observations: r.observations,
+          difficultes: r.difficultes,
+          dispositions: r.dispositions
+        }))
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'pointinscript-backup-' + new Date().toISOString().slice(0,10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Sauvegarde complète téléchargée ✓', 'ok');
+    } catch (e) {
+      toast('Erreur sauvegarde : ' + e.message, 'err');
+    }
   }
 
   // ============================================================

@@ -54,7 +54,24 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          printf "%s" "$KEYSTORE_BASE64" | tr -d '\n\r ' | base64 -d > app/mobile/android/app/release.keystore
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "Error: KEYSTORE_BASE64 secret is empty"
+            exit 1
+          fi
+          # Write to temp file to avoid shell expansion issues
+          printf "%s" "$KEYSTORE_BASE64" > keystore.b64
+          # Remove any potential whitespace or quotes and decode
+          cat keystore.b64 | tr -d '\n\r "' | base64 -d > app/mobile/android/app/release.keystore
+          rm keystore.b64
+
+      - name: Keystore Diagnostic
+        run: |
+          echo "=== File Type ==="
+          file app/mobile/android/app/release.keystore
+          echo "=== File Size ==="
+          ls -l app/mobile/android/app/release.keystore
+          echo "=== First 16 bytes (Hex) ==="
+          head -c 16 app/mobile/android/app/release.keystore | xxd -g 1 || echo "xxd not available"
 
       - name: Verify keystore
         env:
@@ -62,11 +79,12 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "=== File info ==="
-          file app/mobile/android/app/release.keystore
-          ls -la app/mobile/android/app/release.keystore
-          echo "=== Keytool verify (JKS) ==="
-          keytool -list -v -storetype JKS -keystore app/mobile/android/app/release.keystore -storepass "$STORE_PASS" -alias "$KEY_ALIAS" -keypass "$KEY_PASS"
+          if [ -z "$STORE_PASS" ] || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASS" ]; then
+            echo "Error: One or more signing secrets are empty"
+            exit 1
+          fi
+          echo "=== Keytool verify ==="
+          keytool -list -v -keystore app/mobile/android/app/release.keystore -storepass "$STORE_PASS" -alias "$KEY_ALIAS" -keypass "$KEY_PASS"
 
       - name: Create signing config
         working-directory: app/mobile/android

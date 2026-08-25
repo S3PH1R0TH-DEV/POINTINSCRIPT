@@ -14,15 +14,16 @@ window.APP_CONFIG = {
     appId: "1:601695622697:web:50d173bb1b680a6be1ee38"
   },
 
-  // ---- Domaine des comptes directeurs ----
-  // Chaque directeur a un identifiant ("deobako") + mot de passe.
-  // Techniquement, on en fait un email "deobako@<usernameDomain>".
+  // ---- Rôles & Comptes ----
+  // Directeurs : identifiant + mot de passe → email "identifiant@pointinscript.app"
   usernameDomain: "pointinscript.app",
 
-  // ---- Compte administrateur ----
-  // L'email du compte admin (à créer dans Firebase → Authentication).
-  // DOIT correspondre exactement à ce qui est écrit dans firestore.rules.
+  // Admin : email Firebase Auth (custom claim 'admin: true')
   adminEmail: "admin@pointinscript.app",
+
+  // Inspecteur IEPP : lecture seule dashboard (custom claim 'inspecteur: true')
+  inspecteurEmail: "ieppgrabo@pointinscript.app",
+  inspecteurPassword: "000204",  // temporaire pour création, à changer après 1ère connexion
 
   // Année scolaire (affichage)
   year: "2026-2027",

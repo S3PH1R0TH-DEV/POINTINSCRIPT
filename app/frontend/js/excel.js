@@ -62,14 +62,7 @@ const ExcelExport = (() => {
     for (const n of notes) { aoa.push(['• ' + n]); merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 9 } }); }
 
     aoa.push([]);
-    // --- Liste des écoles ---
-    for (const row of cons.rows) {
-      aoa.push([row.nom]);
-    }
-    aoa.push(['TOTAL']);
-
-    aoa.push([]);
-    aoa.push(['Document généré par POINTINSCRIPT le ' + new Date().toLocaleString('fr-FR') + ' — Année scolaire ' + cons.year']);
+    aoa.push(['Document généré par POINTINSCRIPT le ' + new Date().toLocaleString('fr-FR') + ' — Année scolaire ' + cons.year]);
     merges.push({ s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 0 } });
 
     // --- Feuille ---
@@ -85,7 +78,7 @@ const ExcelExport = (() => {
     return wb;
   }
 
-  // Rend un tableau du canevas (seulement le total, pas les écoles individuelles)
+  // Rend un tableau du canevas avec le détail par école
   function renderTable(aoa, merges, title, rows, field, cntLabel) {
     // Titre
     const t = aoa.length;
@@ -104,14 +97,32 @@ const ExcelExport = (() => {
     // En-tête niveau 2
     aoa.push(['', '', 'Total', 'Dont filles', 'Avec', 'Sans', 'Total', 'Dont filles', '', '']);
 
-    // TOTAL uniquement (cumul de toutes les écoles)
+    // Détail par école
+    for (const row of rows) {
+      const cntKey = field + '_' + cntLabel;
+      const motifs = row[field + '_motifs'] || '';
+      aoa.push([
+        row.nom,
+        num(row[cntKey]) || 0,
+        num(row[field + '_inscrits_total']) || 0,
+        num(row[field + '_inscrits_filles']) || 0,
+        num(row[field + '_handicap_avec']) || 0,
+        num(row[field + '_handicap_sans']) || 0,
+        num(row[field + '_non_inscrits_total']) || 0,
+        num(row[field + '_non_inscrits_filles']) || 0,
+        pctOf(num(row[field + '_non_inscrits_total']) || 0, num(row[cntKey]) || 0) === null ? '' : (pctOf(num(row[field + '_non_inscrits_total']) || 0, num(row[cntKey]) || 0) + ' %'),
+        motifs
+      ]);
+    }
+
+    // TOTAL (cumul de toutes les écoles)
     const add = (key) => rows.reduce((a, row) => a + (num(row[field + '_' + key]) || 0), 0);
     const cntKey = field + '_' + cntLabel;
     const motifs = [...new Set(rows.map(r => r[field + '_motifs']).filter(Boolean))].join(' ; ');
     aoa.push([
       'TOTAL', add(cntKey), add('inscrits_total'), add('inscrits_filles'),
       add('handicap_avec'), add('handicap_sans'), add('non_inscrits_total'), add('non_inscrits_filles'),
-      pctOf(add('non_inscrits_total'), add(cntKey)) === null ? null : (pctOf(add('non_inscrits_total'), add(cntKey)) + ' %'),
+      pctOf(add('non_inscrits_total'), add(cntKey)) === null ? '' : (pctOf(add('non_inscrits_total'), add(cntKey)) + ' %'),
       motifs
     ]);
   }
