@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -39,8 +41,8 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-v3-${{ hashFiles('app/mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-v1-
+          key: ${{ runner.os }}-gradle-v4-${{ hashFiles('app/mobile/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: ${{ runner.os }}-gradle-v4-
 
       - name: Install Capacitor deps
         working-directory: app/mobile
@@ -120,8 +122,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           files: app/mobile/android/app/build/outputs/apk/release/*.apk
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create/Update "Latest" Release (push main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -138,5 +139,4 @@ jobs:
           files: app/mobile/android/app/build/outputs/apk/release/*.apk
           make_latest: true
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
