@@ -215,7 +215,7 @@ EPM002;EPM Adjamé;Secteur pédagogique 2;Primaire + Grande Section;Mme Aya'></t
   </div>
 
   <!-- ============ VUE INSPECTEUR (lecture seule) ============ -->
-  <main id="inspecteur-view" class="container hidden">
+  <div id="inspecteur-view" class="screen hidden">
     <header class="topbar">
       <div class="topbar-left">
         <span class="app-name">POINTINSCRIPT — Supervision IEPP</span>
@@ -226,38 +226,39 @@ EPM002;EPM Adjamé;Secteur pédagogique 2;Primaire + Grande Section;Mme Aya'></t
         <button class="btn btn-ghost btn-sm" id="insp-logout-btn">Déconnexion</button>
       </div>
     </header>
-
-    <section class="tab-panel active">
-      <div class="filters">
-        <label>Semaine</label>
-        <select id="insp-cons-week"><option value="">Toutes les semaines</option></select>
-        <label>Secteur</label>
-        <select id="insp-cons-secteur"><option value="">Tous</option></select>
-        <button class="btn btn-sm btn-outline" id="insp-refresh-dash">Actualiser</button>
-      </div>
-      <div class="stat-cards" id="insp-stat-cards"></div>
-      <p class="last-sync" id="insp-last-sync"></p>
-      <div class="charts-row">
-        <div class="card chart-card">
-          <h4>🧒 Répartition — Préscolaire</h4>
-          <div id="insp-donut-pre" class="donut-container"></div>
+    <main class="container">
+      <section class="tab-panel active">
+        <div class="filters">
+          <label>Semaine</label>
+          <select id="insp-cons-week"><option value="">Toutes les semaines</option></select>
+          <label>Secteur</label>
+          <select id="insp-cons-secteur"><option value="">Tous</option></select>
+          <button class="btn btn-sm btn-outline" id="insp-refresh-dash">Actualiser</button>
+        </div>
+        <div class="stat-cards" id="insp-stat-cards"></div>
+        <p class="last-sync" id="insp-last-sync"></p>
+        <div class="charts-row">
+          <div class="card chart-card">
+            <h4>🧒 Répartition — Préscolaire</h4>
+            <div id="insp-donut-pre" class="donut-container"></div>
+          </div>
+          <div class="card chart-card">
+            <h4>📚 Répartition — Primaire</h4>
+            <div id="insp-donut-prim" class="donut-container"></div>
+          </div>
         </div>
         <div class="card chart-card">
-          <h4>📚 Répartition — Primaire</h4>
-          <div id="insp-donut-prim" class="donut-container"></div>
+          <h4>📈 Évolution quotidienne des inscriptions</h4>
+          <div id="insp-bar-chart" class="bar-container"></div>
         </div>
-      </div>
-      <div class="card chart-card">
-        <h4>📈 Évolution quotidienne des inscriptions</h4>
-        <div id="insp-bar-chart" class="bar-container"></div>
-      </div>
-      <div class="card">
-        <h4>Détail par école</h4>
-        <div class="table-wrap"><table id="insp-cons-table"></table></div>
-      </div>
-    </section>
+        <div class="card">
+          <h4>Détail par école</h4>
+          <div class="table-wrap"><table id="insp-cons-table"></table></div>
+        </div>
+      </section>
+    </main>
     <footer class="app-footer">Propulsé par S3ph1r0th-DEK Builds &copy; 2026</footer>
-  </main>
+  </div>
 
   <!-- ============ MODALE ÉCOLE ============ -->
   <div id="modal" class="modal hidden">

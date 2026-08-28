@@ -114,11 +114,13 @@
 
   function showLogin() {
     $('app-view').classList.add('hidden');
+    $('inspecteur-view').classList.add('hidden');
     $('login-view').classList.remove('hidden');
     $('login-error').textContent = '';
   }
   function showApp() {
     $('login-view').classList.add('hidden');
+    $('inspecteur-view').classList.add('hidden');
     $('app-view').classList.remove('hidden');
   }
 
