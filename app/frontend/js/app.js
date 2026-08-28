@@ -451,28 +451,28 @@
   }
 
   function renderInspecteurCharts(cons) {
-    // Donuts
     if (cons.rows.some(r => r.has_prescolaire)) {
-      drawDonut('insp-donut-pre', {
-        inscrits: cons.totaux.pre_inscrits_total,
-        filles: cons.totaux.pre_inscrits_filles,
-        nonInscrits: cons.totaux.pre_non_inscrits_total
-      }, ORANGE, ORANGE_LIGHT);
+      Charts.donut($('insp-donut-pre'), [
+        { label: 'Filles inscrites', value: cons.totaux.pre_inscrits_filles, color: GREEN },
+        { label: 'Garçons inscrits', value: cons.totaux.pre_inscrits_total - cons.totaux.pre_inscrits_filles, color: GREEN_LIGHT },
+        { label: 'Non-inscrits', value: cons.totaux.pre_non_inscrits_total, color: GREY }
+      ]);
     } else {
       $('insp-donut-pre').innerHTML = '<p class="hint">Pas de données préscolaire</p>';
     }
     if (cons.rows.some(r => r.has_primaire)) {
-      drawDonut('insp-donut-prim', {
-        inscrits: cons.totaux.prim_inscrits_total,
-        filles: cons.totaux.prim_inscrits_filles,
-        nonInscrits: cons.totaux.prim_non_inscrits_total
-      }, GREEN, GREEN_LIGHT);
+      Charts.donut($('insp-donut-prim'), [
+        { label: 'Filles inscrites', value: cons.totaux.prim_inscrits_filles, color: ORANGE },
+        { label: 'Garçons inscrits', value: cons.totaux.prim_inscrits_total - cons.totaux.prim_inscrits_filles, color: ORANGE_LIGHT },
+        { label: 'Non-inscrits', value: cons.totaux.prim_non_inscrits_total, color: GREY }
+      ]);
     } else {
       $('insp-donut-prim').innerHTML = '<p class="hint">Pas de données primaire</p>';
     }
-
-    // Barres
-    drawBarChart('insp-bar-chart', cons, config);
+    Charts.bars($('insp-bar-chart'), [
+      { label: 'Préscolaire', values: [{ name: 'Inscrits', value: cons.totaux.pre_inscrits_total, color: GREEN }] },
+      { label: 'Primaire', values: [{ name: 'Inscrits', value: cons.totaux.prim_inscrits_total, color: ORANGE }] }
+    ]);
   }
 
   function renderInspecteurTable(cons) {
