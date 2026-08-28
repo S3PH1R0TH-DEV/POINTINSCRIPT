@@ -499,11 +499,7 @@
     b.textContent = navigator.onLine ? '● En ligne' : '○ Hors ligne';
   }
 
-  function updateInspecteurSyncBadge() {
-    const b = $('insp-sync-badge');
-    b.className = 'sync-badge ' + (navigator.onLine ? 'online' : 'offline');
-    b.textContent = navigator.onLine ? '● En ligne' : '○ Hors ligne';
-  }
+  async function loadSecteurs() {
     secteurs = await FB.getSecteurs();
     const sl = $('secteur-list');
     sl.innerHTML = '';

@@ -64,17 +64,6 @@ const FB = (() => {
     return cred.user;
   }
 
-  // Se connecte (admin OU directeur selon l'identifiant fourni)
-  async function login(username, password) {
-    const u = (username || '').trim().toLowerCase();
-    let email;
-    if (u === ADMIN_EMAIL.toLowerCase() || u === 'admin') email = ADMIN_EMAIL;      // admin (email complet ou "admin")
-    else if (u.includes('@')) email = u;                                              // email direct
-    else email = emailForUsername(username);                                          // identifiant directeur
-    const cred = await auth.signInWithEmailAndPassword(email, password);
-    return cred.user;
-  }
-
   async function logout() { await auth.signOut(); }
 
   // Crée un compte directeur SANS déconnecter l'admin (appel REST signUp)
