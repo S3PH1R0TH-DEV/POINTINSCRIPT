@@ -125,22 +125,24 @@
   }
 
   async function enterAppFor(user) {
-    showApp();
     const isAdmin = FB.isAdminUser(user);
     const isInspecteur = FB.isInspecteurUser(user);
     if (isAdmin) {
+      showApp();
       session = { user, role: 'admin', school: null };
       $('user-label').textContent = '🛡️ Admin';
       hideAllViews();
       $('admin-view').classList.remove('hidden');
       await initAdmin();
     } else if (FB.isInspecteurUser(user)) {
-      session = { user, role: 'inspecteur', school: null };
-      $('user-label').textContent = '👁️ Inspecteur IEPP';
-      hideAllViews();
+      $('login-view').classList.add('hidden');
+      $('app-view').classList.add('hidden');
       $('inspecteur-view').classList.remove('hidden');
+      session = { user, role: 'inspecteur', school: null };
+      $('insp-user-label').textContent = '👁️ Inspecteur IEPP';
       await initInspecteur();
     } else {
+      showApp();
       const school = await FB.getMySchool(user.uid);
       if (!school) { toast('École introuvable pour ce compte', 'err'); return logout(); }
       session = { user, role: 'directeur', school };
