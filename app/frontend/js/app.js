@@ -422,12 +422,15 @@
     if (week) { const w = config.weeks.find(x => x.no === Number(week)); weekFrom = w.from; weekTo = w.to; }
     const reports = await FB.getAllReports(weekFrom, weekTo);
     let cons = computeConsolidation(reports, week || null);
+    let filteredReports = reports;
     if (secteur) {
       const ids = new Set(cons.rows.filter(r => r.secteurId === secteur).map(r => r.id));
       cons = computeConsolidation(reports.filter(r => ids.has(r.schoolId)), week || null);
+      filteredReports = reports.filter(r => ids.has(r.schoolId));
     }
+    const stats = computeStats(filteredReports, week || null);
     renderInspecteurStats(cons);
-    renderInspecteurCharts(cons);
+    renderInspecteurCharts(cons, stats);
     renderInspecteurTable(cons);
     updateInspecteurSyncBadge();
   }
@@ -454,29 +457,26 @@
     }
   }
 
-  function renderInspecteurCharts(cons) {
-    if (cons.rows.some(r => r.has_prescolaire)) {
-      Charts.donut($('insp-donut-pre'), [
-        { label: 'Filles inscrites', value: cons.totaux.pre_inscrits_filles, color: GREEN },
-        { label: 'Garçons inscrits', value: cons.totaux.pre_inscrits_total - cons.totaux.pre_inscrits_filles, color: GREEN_LIGHT },
-        { label: 'Non-inscrits', value: cons.totaux.pre_non_inscrits_total, color: GREY }
-      ]);
-    } else {
-      $('insp-donut-pre').innerHTML = '<p class="hint">Pas de données préscolaire</p>';
-    }
-    if (cons.rows.some(r => r.has_primaire)) {
-      Charts.donut($('insp-donut-prim'), [
-        { label: 'Filles inscrites', value: cons.totaux.prim_inscrits_filles, color: ORANGE },
-        { label: 'Garçons inscrits', value: cons.totaux.prim_inscrits_total - cons.totaux.prim_inscrits_filles, color: ORANGE_LIGHT },
-        { label: 'Non-inscrits', value: cons.totaux.prim_non_inscrits_total, color: GREY }
-      ]);
-    } else {
-      $('insp-donut-prim').innerHTML = '<p class="hint">Pas de données primaire</p>';
-    }
-    Charts.bars($('insp-bar-chart'), [
-      { label: 'Préscolaire', values: [{ name: 'Inscrits', value: cons.totaux.pre_inscrits_total, color: GREEN }] },
-      { label: 'Primaire', values: [{ name: 'Inscrits', value: cons.totaux.prim_inscrits_total, color: ORANGE }] }
+  function renderInspecteurCharts(cons, stats) {
+    // Donuts — même logique que admin (avec/sans)
+    Charts.donut($('insp-donut-pre'), [
+      { label: 'Filles inscrites', value: stats.totals.pre_filles, color: GREEN },
+      { label: 'Garçons inscrits', value: stats.totals.pre_inscrits - stats.totals.pre_filles, color: GREEN_LIGHT },
+      { label: 'Non-inscrits', value: stats.totals.pre_non, color: GREY }
     ]);
+    Charts.donut($('insp-donut-prim'), [
+      { label: 'Filles inscrites', value: stats.totals.prim_filles, color: ORANGE },
+      { label: 'Garçons inscrits', value: stats.totals.prim_inscrits - stats.totals.prim_filles, color: ORANGE_LIGHT },
+      { label: 'Non-inscrits', value: stats.totals.prim_non, color: GREY }
+    ]);
+    const series = (stats.series || []).map(s => ({
+      label: s.label,
+      values: [
+        { name: 'Préscolaire', value: s.pre_inscrits, color: GREEN },
+        { name: 'Primaire (CP1)', value: s.prim_inscrits, color: ORANGE }
+      ]
+    }));
+    Charts.bars($('insp-bar-chart'), series);
   }
 
   function renderInspecteurTable(cons) {
