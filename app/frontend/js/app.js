@@ -207,19 +207,27 @@
 
     setField('pre_enfants', data.pre_enfants);
     setField('pre_inscrits_total', data.pre_inscrits_total);
-    setField('pre_inscrits_filles', data.pre_inscrits_filles);
-    setField('pre_handicap_avec', data.pre_handicap_avec);
-    setField('pre_handicap_sans', data.pre_handicap_sans);
+    setField('pre_avec_extrait', data.pre_avec_extrait);
+    setField('pre_avec_extrait_filles', data.pre_avec_extrait_filles);
+    setField('pre_sans_extrait', data.pre_sans_extrait);
+    setField('pre_sans_extrait_filles', data.pre_sans_extrait_filles);
+    // compat anciens rapports avec pre_inscrits_filles -> répartir si nouveaux vides
+    if((data.pre_avec_extrait_filles==null && data.pre_sans_extrait_filles==null) && data.pre_inscrits_filles!=null){
+      // ne rien faire, on laisse les nouveaux vides pour saisie
+    }
+    setField('pre_handicap_avec', data.pre_handicap_avec!=null ? data.pre_handicap_avec : data.pre_handicap_total);
+    setField('pre_handicap_sans', data.pre_handicap_sans!=null ? data.pre_handicap_sans : data.pre_handicap_filles);
     setField('pre_non_inscrits_total', data.pre_non_inscrits_total);
-    setField('pre_non_inscrits_filles', data.pre_non_inscrits_filles);
     $('pre_motifs').value = data.pre_motifs || '';
     setField('prim_eleves', data.prim_eleves);
     setField('prim_inscrits_total', data.prim_inscrits_total);
-    setField('prim_inscrits_filles', data.prim_inscrits_filles);
-    setField('prim_handicap_avec', data.prim_handicap_avec);
-    setField('prim_handicap_sans', data.prim_handicap_sans);
+    setField('prim_avec_extrait', data.prim_avec_extrait);
+    setField('prim_avec_extrait_filles', data.prim_avec_extrait_filles);
+    setField('prim_sans_extrait', data.prim_sans_extrait);
+    setField('prim_sans_extrait_filles', data.prim_sans_extrait_filles);
+    setField('prim_handicap_avec', data.prim_handicap_avec!=null ? data.prim_handicap_avec : data.prim_handicap_total);
+    setField('prim_handicap_sans', data.prim_handicap_sans!=null ? data.prim_handicap_sans : data.prim_handicap_filles);
     setField('prim_non_inscrits_total', data.prim_non_inscrits_total);
-    setField('prim_non_inscrits_filles', data.prim_non_inscrits_filles);
     $('prim_motifs').value = data.prim_motifs || '';
     $('observations').value = data.observations || '';
     $('difficultes').value = data.difficultes || '';
@@ -258,19 +266,28 @@
       date: currentDate(),
       pre_enfants: readNum('pre_enfants'),
       pre_inscrits_total: readNum('pre_inscrits_total'),
-      pre_inscrits_filles: readNum('pre_inscrits_filles'),
+      pre_avec_extrait: readNum('pre_avec_extrait'),
+      pre_avec_extrait_filles: readNum('pre_avec_extrait_filles'),
+      pre_sans_extrait: readNum('pre_sans_extrait'),
+      pre_sans_extrait_filles: readNum('pre_sans_extrait_filles'),
+      // compat: garder pre_inscrits_filles pour anciens exports (= somme des 2 dont filles si non renseigné)
+      pre_inscrits_filles: (function(){ const a=readNum('pre_avec_extrait_filles'), b=readNum('pre_sans_extrait_filles'); if(a!=null||b!=null) return (a||0)+(b||0); return null; })(),
       pre_handicap_avec: readNum('pre_handicap_avec'),
       pre_handicap_sans: readNum('pre_handicap_sans'),
       pre_non_inscrits_total: readNum('pre_non_inscrits_total'),
-      pre_non_inscrits_filles: readNum('pre_non_inscrits_filles'),
+      pre_non_inscrits_filles: null,
       pre_motifs: $('pre_motifs').value.trim(),
       prim_eleves: readNum('prim_eleves'),
       prim_inscrits_total: readNum('prim_inscrits_total'),
-      prim_inscrits_filles: readNum('prim_inscrits_filles'),
+      prim_avec_extrait: readNum('prim_avec_extrait'),
+      prim_avec_extrait_filles: readNum('prim_avec_extrait_filles'),
+      prim_sans_extrait: readNum('prim_sans_extrait'),
+      prim_sans_extrait_filles: readNum('prim_sans_extrait_filles'),
+      prim_inscrits_filles: (function(){ const a=readNum('prim_avec_extrait_filles'), b=readNum('prim_sans_extrait_filles'); if(a!=null||b!=null) return (a||0)+(b||0); return null; })(),
       prim_handicap_avec: readNum('prim_handicap_avec'),
       prim_handicap_sans: readNum('prim_handicap_sans'),
       prim_non_inscrits_total: readNum('prim_non_inscrits_total'),
-      prim_non_inscrits_filles: readNum('prim_non_inscrits_filles'),
+      prim_non_inscrits_filles: null,
       prim_motifs: $('prim_motifs').value.trim(),
       observations: $('observations').value.trim(),
       difficultes: $('difficultes').value.trim(),
@@ -310,6 +327,18 @@
       $('report-status').className = 'status-line err';
       toast('Erreur lors de l\'envoi', 'err');
     }
+  }
+
+  // 🔄 Mise à jour de l'application — vide le cache Web
+  async function forceUpdateApp(){
+    if(!confirm('Mettre à jour l\'application ?\nCela va vider le cache et recharger la dernière version.')) return;
+    try{
+      if('caches' in window){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }
+      if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs) await r.unregister(); }
+      localStorage.removeItem('pointinscript_cache_v1');
+      toast('Cache vidé — rechargement…','ok');
+      setTimeout(()=>location.reload(true), 900);
+    }catch(e){ toast('Erreur mise à jour: '+(e.message||e),'err'); }
   }
 
   // 🎉 Encouragement : gestion de la série de jours
@@ -579,7 +608,12 @@
         derniere_maj: last ? last.date : null,
         pre_enfants: ssum('pre_enfants'),
         pre_inscrits_total: ssum('pre_inscrits_total'),
-        pre_inscrits_filles: ssum('pre_inscrits_filles'),
+        pre_avec_extrait: ssum('pre_avec_extrait'),
+        pre_avec_extrait_filles: ssum('pre_avec_extrait_filles'),
+        pre_sans_extrait: ssum('pre_sans_extrait'),
+        pre_sans_extrait_filles: ssum('pre_sans_extrait_filles'),
+        // compat ancien champ
+        pre_inscrits_filles: ssum('pre_inscrits_filles') || (ssum('pre_avec_extrait_filles')+ssum('pre_sans_extrait_filles')),
         pre_handicap_avec: ssum('pre_handicap_avec'),
         pre_handicap_sans: ssum('pre_handicap_sans'),
         pre_non_inscrits_total: ssum('pre_non_inscrits_total'),
@@ -587,7 +621,11 @@
         pre_motifs: uniq('pre_motifs'),
         prim_eleves: ssum('prim_eleves'),
         prim_inscrits_total: ssum('prim_inscrits_total'),
-        prim_inscrits_filles: ssum('prim_inscrits_filles'),
+        prim_avec_extrait: ssum('prim_avec_extrait'),
+        prim_avec_extrait_filles: ssum('prim_avec_extrait_filles'),
+        prim_sans_extrait: ssum('prim_sans_extrait'),
+        prim_sans_extrait_filles: ssum('prim_sans_extrait_filles'),
+        prim_inscrits_filles: ssum('prim_inscrits_filles') || (ssum('prim_avec_extrait_filles')+ssum('prim_sans_extrait_filles')),
         prim_handicap_avec: ssum('prim_handicap_avec'),
         prim_handicap_sans: ssum('prim_handicap_sans'),
         prim_non_inscrits_total: ssum('prim_non_inscrits_total'),
@@ -612,11 +650,17 @@
       taux_remontee: total ? Math.round((ayant / total) * 1000) / 10 : 0,
       totaux: {
         pre_enfants: gsum('pre_enfants'), pre_inscrits_total: gsum('pre_inscrits_total'),
-        pre_inscrits_filles: gsum('pre_inscrits_filles'), pre_handicap_avec: gsum('pre_handicap_avec'),
+        pre_avec_extrait: gsum('pre_avec_extrait'), pre_avec_extrait_filles: gsum('pre_avec_extrait_filles'),
+        pre_sans_extrait: gsum('pre_sans_extrait'), pre_sans_extrait_filles: gsum('pre_sans_extrait_filles'),
+        pre_inscrits_filles: gsum('pre_inscrits_filles') || (gsum('pre_avec_extrait_filles')+gsum('pre_sans_extrait_filles')),
+        pre_handicap_avec: gsum('pre_handicap_avec'),
         pre_handicap_sans: gsum('pre_handicap_sans'), pre_non_inscrits_total: gsum('pre_non_inscrits_total'),
         pre_non_inscrits_filles: gsum('pre_non_inscrits_filles'),
         prim_eleves: gsum('prim_eleves'), prim_inscrits_total: gsum('prim_inscrits_total'),
-        prim_inscrits_filles: gsum('prim_inscrits_filles'), prim_handicap_avec: gsum('prim_handicap_avec'),
+        prim_avec_extrait: gsum('prim_avec_extrait'), prim_avec_extrait_filles: gsum('prim_avec_extrait_filles'),
+        prim_sans_extrait: gsum('prim_sans_extrait'), prim_sans_extrait_filles: gsum('prim_sans_extrait_filles'),
+        prim_inscrits_filles: gsum('prim_inscrits_filles') || (gsum('prim_avec_extrait_filles')+gsum('prim_sans_extrait_filles')),
+        prim_handicap_avec: gsum('prim_handicap_avec'),
         prim_handicap_sans: gsum('prim_handicap_sans'), prim_non_inscrits_total: gsum('prim_non_inscrits_total'),
         prim_non_inscrits_filles: gsum('prim_non_inscrits_filles')
       },
@@ -984,6 +1028,8 @@
     $('report-form').addEventListener('input', (e) => { if (e.target.classList.contains('num')) computePct(); });
     $('save-draft-btn').addEventListener('click', saveDraft);
     $('submit-btn').addEventListener('click', submitReport);
+    const updBtn = $('force-update-btn');
+    if(updBtn) updBtn.addEventListener('click', forceUpdateApp);
 
     // Onglets
     document.querySelectorAll('#admin-tabs .tab').forEach(t => {

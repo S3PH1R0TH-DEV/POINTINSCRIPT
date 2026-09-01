@@ -1,5 +1,5 @@
-// Service Worker — cache du "shell" pour un fonctionnement hors-ligne
-const CACHE = 'inscriptions-v2';
+// Service Worker — cache du "shell" pour un fonctionnement hors-ligne — v1.1.0 canevas avec/sans extrait
+const CACHE = 'inscriptions-v3';
 const ASSETS = [
   './',
   './index.html',

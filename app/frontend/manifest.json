@@ -1,8 +1,9 @@
 {
   "name": "POINTINSCRIPT",
   "short_name": "POINTINSCRIPT",
+  "version": "1.1.0",
   "description": "Remontée hebdomadaire des inscriptions au préscolaire et au CP1 (DELC - Côte d'Ivoire)",
-  "start_url": ".",
+  "start_url": "./index.html?v=1.1.0",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f4f6f8",

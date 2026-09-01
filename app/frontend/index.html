@@ -66,33 +66,37 @@
       </div>
 
       <form id="report-form">
-        <!-- Préscolaire -->
+        <!-- Préscolaire — conforme canevas DELC 2026-2027 -->
         <section id="pre-section" class="hidden">
           <h3 class="section-title pre">🧒 Point des inscriptions au Préscolaire</h3>
           <div class="grid-form">
             <div class="field"><label>Nombre d'enfants</label><input type="number" min="0" id="pre_enfants" class="num"></div>
             <div class="field"><label>Inscrits — Total</label><input type="number" min="0" id="pre_inscrits_total" class="num"></div>
-            <div class="field"><label>Inscrits — Dont filles</label><input type="number" min="0" id="pre_inscrits_filles" class="num"></div>
-            <div class="field"><label>Handicap — Avec</label><input type="number" min="0" id="pre_handicap_avec" class="num"></div>
-            <div class="field"><label>Handicap — Sans</label><input type="number" min="0" id="pre_handicap_sans" class="num"></div>
-            <div class="field"><label>Non-inscrits — Total</label><input type="number" min="0" id="pre_non_inscrits_total" class="num"></div>
-            <div class="field"><label>Non-inscrits — Dont filles</label><input type="number" min="0" id="pre_non_inscrits_filles" class="num"></div>
+            <div class="field"><label>Avec extrait</label><input type="number" min="0" id="pre_avec_extrait" class="num"></div>
+            <div class="field"><label>Dont filles (avec extrait)</label><input type="number" min="0" id="pre_avec_extrait_filles" class="num"></div>
+            <div class="field"><label>Sans extrait</label><input type="number" min="0" id="pre_sans_extrait" class="num"></div>
+            <div class="field"><label>Dont filles (sans extrait)</label><input type="number" min="0" id="pre_sans_extrait_filles" class="num"></div>
+            <div class="field"><label>Handicap — Total</label><input type="number" min="0" id="pre_handicap_avec" class="num"></div>
+            <div class="field"><label>Handicap — Dont filles</label><input type="number" min="0" id="pre_handicap_sans" class="num"></div>
+            <div class="field"><label>Nombre de non-inscrits</label><input type="number" min="0" id="pre_non_inscrits_total" class="num"></div>
             <div class="field"><label>% Non-inscrits</label><input type="text" id="pre_non_inscrits_pct" readonly class="num muted"></div>
           </div>
           <div class="field full"><label>Motifs de non-inscription (préscolaire)</label><textarea id="pre_motifs" rows="2"></textarea></div>
         </section>
 
-        <!-- Primaire -->
+        <!-- Primaire — conforme canevas DELC 2026-2027 -->
         <section id="prim-section" class="hidden">
           <h3 class="section-title prim">📚 Point des inscriptions au Primaire (CP1)</h3>
           <div class="grid-form">
             <div class="field"><label>Nombre d'élèves</label><input type="number" min="0" id="prim_eleves" class="num"></div>
             <div class="field"><label>Inscrits — Total</label><input type="number" min="0" id="prim_inscrits_total" class="num"></div>
-            <div class="field"><label>Inscrits — Dont filles</label><input type="number" min="0" id="prim_inscrits_filles" class="num"></div>
-            <div class="field"><label>Handicap — Avec</label><input type="number" min="0" id="prim_handicap_avec" class="num"></div>
-            <div class="field"><label>Handicap — Sans</label><input type="number" min="0" id="prim_handicap_sans" class="num"></div>
-            <div class="field"><label>Non-inscrits — Total</label><input type="number" min="0" id="prim_non_inscrits_total" class="num"></div>
-            <div class="field"><label>Non-inscrits — Dont filles</label><input type="number" min="0" id="prim_non_inscrits_filles" class="num"></div>
+            <div class="field"><label>Avec extrait</label><input type="number" min="0" id="prim_avec_extrait" class="num"></div>
+            <div class="field"><label>Dont filles (avec extrait)</label><input type="number" min="0" id="prim_avec_extrait_filles" class="num"></div>
+            <div class="field"><label>Sans extrait</label><input type="number" min="0" id="prim_sans_extrait" class="num"></div>
+            <div class="field"><label>Dont filles (sans extrait)</label><input type="number" min="0" id="prim_sans_extrait_filles" class="num"></div>
+            <div class="field"><label>Handicap — Total</label><input type="number" min="0" id="prim_handicap_avec" class="num"></div>
+            <div class="field"><label>Handicap — Dont filles</label><input type="number" min="0" id="prim_handicap_sans" class="num"></div>
+            <div class="field"><label>Nombre de non-inscrits</label><input type="number" min="0" id="prim_non_inscrits_total" class="num"></div>
             <div class="field"><label>% Non-inscrits</label><input type="text" id="prim_non_inscrits_pct" readonly class="num muted"></div>
           </div>
           <div class="field full"><label>Motifs de non-inscription (primaire)</label><textarea id="prim_motifs" rows="2"></textarea></div>
@@ -108,6 +112,7 @@
         <div class="actions">
           <button type="button" class="btn btn-outline" id="save-draft-btn">💾 Enregistrer (brouillon)</button>
           <button type="button" class="btn btn-primary" id="submit-btn">☁️ Envoyer au serveur</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="force-update-btn" title="Vider le cache et recharger l'application">🔄 Mise à jour de l'application</button>
         </div>
         <p class="status-line" id="report-status"></p>
       </form>
