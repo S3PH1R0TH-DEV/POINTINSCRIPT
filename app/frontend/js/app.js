@@ -490,6 +490,11 @@
       }
     } catch (e) { /* offline */ }
 
+    // Écoles (indispensable : la consolidation compte total_ecoles depuis cette liste)
+    try {
+      ecoles = await FB.getEcoles();
+    } catch (e) { ecoles = []; /* offline : stats à 0, tableau vide */ }
+
     await renderInspecteurDashboard();
 
     // Refresh buttons
@@ -519,6 +524,10 @@
     renderInspecteurStats(cons);
     renderInspecteurCharts(cons, stats);
     renderInspecteurTable(cons);
+    const ls = $('insp-last-sync');
+    if (ls) ls.textContent = navigator.onLine
+      ? '🟢 À jour — ' + new Date().toLocaleTimeString('fr-FR') + ' • ' + cons.ecoles_ayant_rapporte + '/' + cons.total_ecoles + ' écoles'
+      : '📶 Hors ligne — données incomplètes possibles';
     updateInspecteurSyncBadge();
   }
 
