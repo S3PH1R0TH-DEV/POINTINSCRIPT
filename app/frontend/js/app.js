@@ -302,9 +302,35 @@
     toast('Brouillon enregistré', 'ok');
   }
 
+  function validCounts(report) {
+    const nums = ['pre_enfants','pre_inscrits_total','pre_avec_extrait','pre_avec_extrait_filles','pre_sans_extrait','pre_sans_extrait_filles','pre_handicap_avec','pre_handicap_sans','pre_non_inscrits_total','prim_eleves','prim_inscrits_total','prim_avec_extrait','prim_avec_extrait_filles','prim_sans_extrait','prim_sans_extrait_filles','prim_handicap_avec','prim_handicap_sans','prim_non_inscrits_total'];
+    for (const k of nums) {
+      const val = report[k];
+      if (val == null) continue;
+      if (!Number.isFinite(Number(val)) || Number(val) < 0 || Number(val) > 100000) return 'Valeur invalide : ' + k;
+    }
+    // cohérence Avec + Sans ≈ Total (tolérance si Total vide ou partiels)
+    const check = (tot, a, b, label) => {
+      if (tot == null || a == null || b == null) return null;
+      if ((a + b) !== tot) return label + ' : Avec (' + a + ') + Sans (' + b + ') ≠ Total (' + tot + ')';
+      return null;
+    };
+    let e = check(report.pre_inscrits_total, report.pre_avec_extrait, report.pre_sans_extrait, 'Préscolaire');
+    if (e) return e;
+    e = check(report.prim_inscrits_total, report.prim_avec_extrait, report.prim_sans_extrait, 'Primaire');
+    if (e) return e;
+    if (report.pre_avec_extrait_filles != null && report.pre_avec_extrait != null && report.pre_avec_extrait_filles > report.pre_avec_extrait) return 'Préscolaire : filles (avec) > avec extrait';
+    if (report.pre_sans_extrait_filles != null && report.pre_sans_extrait != null && report.pre_sans_extrait_filles > report.pre_sans_extrait) return 'Préscolaire : filles (sans) > sans extrait';
+    if (report.prim_avec_extrait_filles != null && report.prim_avec_extrait != null && report.prim_avec_extrait_filles > report.prim_avec_extrait) return 'Primaire : filles (avec) > avec extrait';
+    if (report.prim_sans_extrait_filles != null && report.prim_sans_extrait != null && report.prim_sans_extrait_filles > report.prim_sans_extrait) return 'Primaire : filles (sans) > sans extrait';
+    return null;
+  }
+
   async function submitReport() {
     const d = currentDate();
     const report = collectReport();
+    const errV = validCounts(report);
+    if (errV) { toast(errV, 'err'); $('report-status').textContent = '⚠️ ' + errV; $('report-status').className = 'status-line err'; return; }
     $('report-status').textContent = navigator.onLine ? 'Envoi en cours…' : '📶 Hors ligne — sera envoyé automatiquement.';
     $('report-status').className = 'status-line';
     try {
@@ -316,29 +342,34 @@
       $('report-status').className = 'status-line ok';
       toast(navigator.onLine ? 'Envoyé avec succès' : 'Enregistré (hors-ligne)', 'ok');
 
-      // 🎉 Encouragement : série de jours consécutifs
+      // 🎉 Encouragement : série de jours consécutifs + effets légers
       const streak = updateStreak(d);
       if (streak > 1) {
         const msg = streakMessages[Math.min(streak, streakMessages.length - 1)];
-        setTimeout(() => toast(msg, 'ok'), 800);
+        setTimeout(() => { toast(msg, 'ok'); celebrateStreak(streak); }, 800);
+      } else {
+        const st = $('report-status');
+        st.classList.remove('streak-pop'); void st.offsetWidth; st.classList.add('streak-pop');
       }
     } catch (err) {
-      $('report-status').textContent = '⚠️ Erreur : ' + (err.message || err);
+      console.warn('submitReport', err);
+      $('report-status').textContent = '⚠️ Erreur lors de l\'envoi. Réessayez.';
       $('report-status').className = 'status-line err';
       toast('Erreur lors de l\'envoi', 'err');
     }
   }
 
-  // 🔄 Mise à jour de l'application — vide le cache Web
+  // 🔄 Mise à jour de l'application — vide le cache Web (brouillons conservés)
   async function forceUpdateApp(){
-    if(!confirm('Mettre à jour l\'application ?\nCela va vider le cache et recharger la dernière version.')) return;
+    if(!confirm('Mettre à jour l\'application ?\nCela va vider le cache et recharger la dernière version. Vos brouillons non envoyés sont conservés.')) return;
     try{
       if('caches' in window){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }
       if('serviceWorker' in navigator){ const regs=await navigator.serviceWorker.getRegistrations(); for(const r of regs) await r.unregister(); }
-      localStorage.removeItem('pointinscript_cache_v1');
+      localStorage.removeItem('admin_cache');
+      localStorage.removeItem('admin_last_seen');
       toast('Cache vidé — rechargement…','ok');
-      setTimeout(()=>location.reload(true), 900);
-    }catch(e){ toast('Erreur mise à jour: '+(e.message||e),'err'); }
+      setTimeout(()=>location.reload(), 900);
+    }catch(e){ console.warn('forceUpdateApp', e); toast('Erreur mise à jour. Réessayez.','err'); }
   }
 
   // 🎉 Encouragement : gestion de la série de jours
@@ -376,6 +407,33 @@
     } catch (_) {
       return 1;
     }
+  }
+
+  // 🎉 Effets gamification légers — 100% natif (confetti CSS, sans librairie, build-safe)
+  function celebrateStreak(streak) {
+    try {
+      const st = $('report-status');
+      if (st) { st.classList.remove('streak-pop'); void st.offsetWidth; st.classList.add('streak-pop', 'celebrate'); }
+      const t = $('toast');
+      if (t) t.classList.add('celebrate');
+      if (navigator.vibrate) { try { navigator.vibrate(35); } catch (_) {} }
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const layer = document.createElement('div');
+      layer.className = 'confetti-layer';
+      const colors = ['#f77f00', '#009e60', '#007a4b', '#ffd166', '#ef476f', '#118ab2'];
+      const n = streak >= 5 ? 42 : 26;
+      for (let i = 0; i < n; i++) {
+        const p = document.createElement('span');
+        p.className = 'confetti-piece';
+        p.style.left = Math.random() * 100 + 'vw';
+        p.style.background = colors[i % colors.length];
+        p.style.animationDelay = (Math.random() * 0.5) + 's';
+        p.style.transform = 'rotate(' + Math.floor(Math.random() * 360) + 'deg)';
+        layer.appendChild(p);
+      }
+      document.body.appendChild(layer);
+      setTimeout(() => layer.remove(), 2800);
+    } catch (_) { /* jamais bloquant */ }
   }
 
   // ============================================================
@@ -1047,6 +1105,11 @@
     $('export-excel-btn').addEventListener('click', exportExcel);
     $('export-btn').addEventListener('click', () => exportCSV());
     $('backup-btn').addEventListener('click', () => backupData());
+    const rstBtn = $('restore-btn'), rstFile = $('restore-file');
+    if (rstBtn && rstFile) {
+      rstBtn.addEventListener('click', () => rstFile.click());
+      rstFile.addEventListener('change', () => { const f = rstFile.files && rstFile.files[0]; rstFile.value = ''; if (f) restoreData(f); });
+    }
 
     // Inspecteur
     $('insp-logout-btn').addEventListener('click', logout);
@@ -1135,6 +1198,10 @@
           date: r.date,
           pre_enfants: r.pre_enfants,
           pre_inscrits_total: r.pre_inscrits_total,
+          pre_avec_extrait: r.pre_avec_extrait,
+          pre_avec_extrait_filles: r.pre_avec_extrait_filles,
+          pre_sans_extrait: r.pre_sans_extrait,
+          pre_sans_extrait_filles: r.pre_sans_extrait_filles,
           pre_inscrits_filles: r.pre_inscrits_filles,
           pre_handicap_avec: r.pre_handicap_avec,
           pre_handicap_sans: r.pre_handicap_sans,
@@ -1143,6 +1210,10 @@
           pre_motifs: r.pre_motifs,
           prim_eleves: r.prim_eleves,
           prim_inscrits_total: r.prim_inscrits_total,
+          prim_avec_extrait: r.prim_avec_extrait,
+          prim_avec_extrait_filles: r.prim_avec_extrait_filles,
+          prim_sans_extrait: r.prim_sans_extrait,
+          prim_sans_extrait_filles: r.prim_sans_extrait_filles,
           prim_inscrits_filles: r.prim_inscrits_filles,
           prim_handicap_avec: r.prim_handicap_avec,
           prim_handicap_sans: r.prim_handicap_sans,
@@ -1160,10 +1231,75 @@
       a.href = url;
       a.download = 'pointinscript-backup-' + new Date().toISOString().slice(0,10) + '.json';
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
       toast('Sauvegarde complète téléchargée ✓', 'ok');
     } catch (e) {
-      toast('Erreur sauvegarde : ' + e.message, 'err');
+      console.warn('backupData', e);
+      toast('Erreur sauvegarde. Réessayez en ligne.', 'err');
+    }
+  }
+
+  // 📥 Restauration admin depuis un fichier JSON (issu de Sauvegarder données)
+  async function restoreData(file) {
+    if (!file) return;
+    if (session.role !== 'admin') { toast('Restauration réservée à l\'admin', 'err'); return; }
+    if (!navigator.onLine) { toast('Restauration impossible hors-ligne', 'err'); return; }
+    if (file.size > 5 * 1024 * 1024) { toast('Fichier trop volumineux (max 5 Mo)', 'err'); return; }
+    let data;
+    try {
+      data = JSON.parse(await file.text());
+    } catch (_) { toast('Fichier JSON invalide', 'err'); return; }
+    if (!data || !Array.isArray(data.ecoles) || !Array.isArray(data.rapports)) { toast('Sauvegarde invalide : ecoles/rapports manquants', 'err'); return; }
+    if (data.ecoles.length > 500 || data.rapports.length > 5000) { toast('Sauvegarde trop volumineuse', 'err'); return; }
+    const nbE = data.ecoles.length, nbR = data.rapports.length;
+    if (!confirm('Restaurer ' + nbE + ' école(s) et ' + nbR + ' rapport(s) ?\nLes écoles existantes (même nom) ne seront pas dupliquées. Les identifiants/mots de passe ne sont jamais restaurés.')) return;
+    toast('Restauration en cours…', '');
+    try {
+      // 1. Secteurs manquants (depuis secteur_nom du backup)
+      const haveSect = new Map(secteurs.map(s => [String(s.nom || '').toLowerCase(), s.id]));
+      const needSect = [...new Set(data.ecoles.map(e => String(e.secteur_nom || '').trim()).filter(Boolean))];
+      for (const nom of needSect) {
+        if (!haveSect.has(nom.toLowerCase())) {
+          const ref = await FB.addSecteur(nom, null);
+          haveSect.set(nom.toLowerCase(), ref.id);
+        }
+      }
+      // 2. Écoles : map ancien id -> id courant (jamais de credentials restaurés)
+      const existByNom = new Map(ecoles.map(e => [String(e.nom || '').toLowerCase(), e.id]));
+      const idMap = {};
+      let createdE = 0;
+      for (const e of data.ecoles) {
+        const nom = String(e.nom || '').trim();
+        if (!nom) continue;
+        const key = nom.toLowerCase();
+        if (existByNom.has(key)) { if (e.id) idMap[e.id] = existByNom.get(key); continue; }
+        const ref = await FB.addEcole({
+          code: e.code || null, nom,
+          secteur_id: (e.secteurId && ecoles.some(x => x.id === e.secteurId)) ? e.secteurId : (haveSect.get(String(e.secteur_nom || '').toLowerCase()) || null),
+          type: ['primaire', 'primaire_prescolaire', 'prescolaire'].includes(e.type) ? e.type : 'primaire',
+          directeur_nom: e.directeur_nom || e.directeurNom || null,
+          directeur_telephone: e.directeur_telephone || e.directeurTelephone || null,
+          directeur_email: e.directeur_email || e.directeurEmail || null
+        });
+        existByNom.set(key, ref.id); createdE++;
+        if (e.id) idMap[e.id] = ref.id;
+      }
+      // 3. Rapports (champs connus uniquement)
+      const KEEP = ['year','date','pre_enfants','pre_inscrits_total','pre_avec_extrait','pre_avec_extrait_filles','pre_sans_extrait','pre_sans_extrait_filles','pre_inscrits_filles','pre_handicap_avec','pre_handicap_sans','pre_non_inscrits_total','pre_non_inscrits_filles','pre_motifs','prim_eleves','prim_inscrits_total','prim_avec_extrait','prim_avec_extrait_filles','prim_sans_extrait','prim_sans_extrait_filles','prim_inscrits_filles','prim_handicap_avec','prim_handicap_sans','prim_non_inscrits_total','prim_non_inscrits_filles','prim_motifs','observations','difficultes','dispositions'];
+      let restoredR = 0, skippedR = 0;
+      for (const r of data.rapports) {
+        const target = (r.schoolId && idMap[r.schoolId]) || (r.schoolId && existByNom.has(String(r.schoolId).toLowerCase()) ? existByNom.get(String(r.schoolId).toLowerCase()) : r.schoolId);
+        if (!target || !r.date || !/^\d{4}-\d{2}-\d{2}$/.test(r.date)) { skippedR++; continue; }
+        const body = { year: config.year, date: r.date };
+        for (const k of KEEP) { if (k === 'year' || k === 'date') continue; if (r[k] !== undefined) body[k] = (typeof r[k] === 'string' && r[k].length > 2000) ? r[k].slice(0, 2000) : r[k]; }
+        await FB.saveReport(target, body);
+        restoredR++;
+      }
+      await loadSecteurs(); await loadEcoles(); await renderDashboard();
+      toast('Restauration terminée : ' + createdE + ' école(s) créée(s), ' + restoredR + ' rapport(s)' + (skippedR ? ' (' + skippedR + ' ignoré(s))' : ''), 'ok');
+    } catch (e) {
+      console.warn('restoreData', e);
+      toast('Erreur restauration. Réessayez en ligne.', 'err');
     }
   }
 

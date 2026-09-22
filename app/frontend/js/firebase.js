@@ -23,6 +23,9 @@ const FB = (() => {
   const ecolesCol = () => db.collection('ecoles');
   const reportsCol = () => db.collection('reports');
   const userSchoolsCol = () => db.collection('userSchools');
+  // Secrets de connexion (mots de passe directeurs) — lecture/écriture admin uniquement (règles Firestore).
+  // Les docs ecoles ne contiennent JAMAIS de mot de passe.
+  const loginSecretsCol = () => db.collection('loginSecrets');
 
   function emailForUsername(username) { return (username + '@' + DOMAIN).toLowerCase(); }
 
@@ -153,6 +156,7 @@ const FB = (() => {
 
   // ---- Logins (génération) ----
   // Crée le compte + lie l'école à l'uid. Retourne {username, password}.
+  // Le mot de passe est stocké UNIQUEMENT dans loginSecrets (admin-only), jamais dans ecoles.
   async function generateLogin(ecoleId) {
     const doc = await ecolesCol().doc(ecoleId).get();
     const e = { id: ecoleId, ...doc.data() };
@@ -160,8 +164,10 @@ const FB = (() => {
     const username = makeUsername(e.nom, e.code);
     const password = randomPassword(8);
     const uid = await createDirectorAccount(username, password);
-    await ecolesCol().doc(ecoleId).set({ username, uid, password }, { merge: true });
+    const patch = { username, uid, password: firebase.firestore.FieldValue.delete() };
+    await ecolesCol().doc(ecoleId).set(patch, { merge: true });
     await userSchoolsCol().doc(uid).set({ schoolId: ecoleId, username });
+    try { await loginSecretsCol().doc(ecoleId).set({ username, password }, { merge: true }); } catch (_) { /* règles à déployer */ }
     return { username, password, nom: e.nom, type: e.type };
   }
   async function generateAllLogins() {
@@ -175,15 +181,35 @@ const FB = (() => {
     }
     return { created, skipped: skipped.length, total: all.size };
   }
+  // Secrets (admin uniquement). Retourne {} si indisponible (règles non déployées / hors-ligne).
+  async function getLoginSecrets() {
+    try {
+      const snap = await loginSecretsCol().get();
+      const out = {};
+      snap.forEach(d => { out[d.id] = d.data(); });
+      return out;
+    } catch (_) { return {}; }
+  }
+  // Migration paresseuse : déplace un mot de passe legacy (champ ecoles.password) vers loginSecrets puis le supprime.
+  async function migrateLegacyPassword(schoolId, password) {
+    if (!password) return;
+    try {
+      await loginSecretsCol().doc(schoolId).set({ password }, { merge: true });
+      await ecolesCol().doc(schoolId).set({ password: firebase.firestore.FieldValue.delete() }, { merge: true });
+    } catch (_) { /* silencieux : réessayé au prochain chargement */ }
+  }
   async function getLogins() {
     const [ecoles, secteursSnap] = await Promise.all([ecolesCol().get(), secteursCol().get()]);
     const secteurs = {};
     secteursSnap.forEach(d => secteurs[d.id] = d.data().nom);
+    const secrets = await getLoginSecrets();
     const out = [];
     ecoles.forEach(d => {
       const e = d.data();
       if (!e.username) return;
-      out.push({ id: d.id, code: e.code, nom: e.nom, username: e.username, password: e.password,
+      const pw = (secrets[d.id] && secrets[d.id].password) || e.password || null;
+      if (e.password && !(secrets[d.id] && secrets[d.id].password)) migrateLegacyPassword(d.id, e.password);
+      out.push({ id: d.id, code: e.code, nom: e.nom, username: e.username, password: pw,
         type: e.type, secteur_nom: secteurs[e.secteurId] || null, directeur_nom: e.directeurNom });
     });
     return out;
@@ -277,6 +303,7 @@ const FB = (() => {
     getMySchool, publicSchool,
     getMyReports, getReport, saveReport,
     getAllReports, getActivity,
+    getLoginSecrets, migrateLegacyPassword,
     randomPassword, makeUsername
   };
 })();

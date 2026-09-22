@@ -23,7 +23,6 @@ window.APP_CONFIG = {
 
   // Inspecteur IEPP : lecture seule dashboard (custom claim 'inspecteur: true')
   inspecteurEmail: "ieppgrabo@pointinscript.app",
-  inspecteurPassword: "000204",  // temporaire pour création, à changer après 1ère connexion
 
   // Année scolaire (affichage)
   year: "2026-2027",

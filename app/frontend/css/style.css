@@ -284,3 +284,14 @@ td.num, th.num { text-align: right; }
 
 /* ---------- Textarea motifs ---------- */
 #pre_motifs, #prim_motifs, #observations, #difficultes, #dispositions { font-size: 15px; line-height: 1.5; }
+
+/* ---------- Gamification légère (pur CSS, sans dépendance — build-safe) ---------- */
+@keyframes streakPop { 0% { transform: scale(.6); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.streak-pop { animation: streakPop .45s ease; }
+.status-line.celebrate { font-weight: 800; color: var(--green-dark); }
+.toast.celebrate { background: linear-gradient(120deg, var(--orange), var(--green-dark)); font-weight: 700; }
+.confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 200; overflow: hidden; }
+.confetti-piece { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; opacity: .95; animation: confettiFall 2.2s ease-in forwards; }
+@keyframes confettiFall { to { transform: translateY(105vh) rotate(720deg); opacity: 0; } }
+.stat.pop .v { animation: streakPop .45s ease; }
+@media (prefers-reduced-motion: reduce) { .streak-pop, .confetti-piece, .stat.pop .v { animation: none; } }

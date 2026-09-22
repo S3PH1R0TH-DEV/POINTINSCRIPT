@@ -153,11 +153,12 @@ const ExcelExport = (() => {
     ]);
   }
 
-  // Télécharge le fichier
+  // Télécharge le fichier (nom de fichier assaini anti path-traversal)
+  function safePart(s){ return String(s||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,24); }
   function download(cons, opts) {
     const wb = build(cons, opts);
-    const weekPart = opts.week_no ? '-S' + opts.week_no : '';
-    const secteurPart = opts.secteur_id ? '-Secteur' + opts.secteur_id : '';
+    const weekPart = opts.week_no ? '-S' + safePart(opts.week_no) : '';
+    const secteurPart = opts.secteur_id ? '-Secteur' + safePart(opts.secteur_id) : '';
     const ecolesPart = cons.rows.length + 'ecoles';
     XLSX.writeFile(wb, 'POINTINSCRIPT-' + cons.year + weekPart + secteurPart + '-' + ecolesPart + '.xlsx');
   }
